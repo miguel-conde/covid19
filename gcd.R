@@ -94,3 +94,31 @@ spain_last_date <- spain_last_data %>% pull(date)
 delay_spain_italy <- italy_past - spain_last_date
 
 delay_spain_italy
+
+
+# ESPAÑA ------------------------------------------------------------------
+
+library(tidyverse)
+library(tabulizer)
+
+ministerio = "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_41_COVID-19.pdf"
+
+area <- locate_areas(ministerio, pages = 2)
+
+area[[1]]
+
+pdf_lista <- extract_tables(
+  ministerio,
+  output = "data.frame",
+  pages = c(2),
+  area = list(
+    c(337.89431,  90.69972, 684.23597, 510.25186)
+  ),
+  guess = FALSE,
+  encoding = "UTF-8"
+)
+
+
+datos <- data.frame(pdf_lista[1])
+
+
