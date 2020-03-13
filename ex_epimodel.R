@@ -9,7 +9,7 @@ library(EpiModel)
 
 help(package = "EpiModel")
 
-epiweb("dcm")
+epiweb("dcm") # http://statnet.org/tut/BasicDCMs.html
 epiweb("icm")
 epiweb("net")
 
