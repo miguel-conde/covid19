@@ -94,7 +94,10 @@ get_cntry_region_ttss <- function(cntry_reg,
   
   if(!is.null(pop_data)) {
     out <- out %>%
-      mutate(IA_14 = roll_IA_14(confirmed) / pop * 1e5) %>% 
+      mutate(IA_14 = 
+               (roll_IA_14(confirmed) - 
+                  roll_IA_14(deaths) - 
+                  roll_IA_14(recovered)) / pop * 1e5) %>% 
       select(-pop) %>% 
       drop_na
   }
