@@ -25,7 +25,8 @@ roll_IA_14 <- rollify(function(x) sum(diff(x)), window = 14)
 get_cntry_region_ttss <- function(cntry_reg,
                                   raw_data_list,
                                   prov_st = NULL,
-                                  pop_data = NULL) {
+                                  pop_data = NULL,
+                                  perc_100K = FALSE) {
   # browser()
   ts_cofirmed <- raw_data_list[["confirmed_ts"]] %>%
     filter(country_region == cntry_reg)
@@ -61,7 +62,8 @@ get_cntry_region_ttss <- function(cntry_reg,
     mutate(date = lubridate::mdy(date))
   
   out <- ts_cofirmed %>% full_join(ts_deaths) %>% 
-    full_join(ts_recovered) 
+    full_join(ts_recovered) %>% 
+    mutate(active = confirmed - deaths - recovered)
   
   if(!is.null(pop_data)) {
     out <- out %>% 
@@ -77,6 +79,7 @@ get_cntry_region_ttss <- function(cntry_reg,
                   confirmed = sum(confirmed),
                   deaths = sum(deaths),
                   recovered = sum(recovered),
+                  active = sum(active),
                   pop = mean(x2018)) %>% 
         ungroup()
     } else {
@@ -86,7 +89,8 @@ get_cntry_region_ttss <- function(cntry_reg,
                   Long = mean(Long),
                   confirmed = sum(confirmed),
                   deaths = sum(deaths),
-                  recovered = sum(recovered)) %>% 
+                  recovered = sum(recovered),
+                  active = sum(active)) %>% 
         ungroup()
     }
     
@@ -98,8 +102,15 @@ get_cntry_region_ttss <- function(cntry_reg,
                (roll_IA_14(confirmed) - 
                   roll_IA_14(deaths) - 
                   roll_IA_14(recovered)) / pop * 1e5) %>% 
-      select(-pop) %>% 
       drop_na
+    
+    if(perc_100K == TRUE) {
+      out <- out %>% 
+        mutate_at(vars(confirmed, deaths, recovered, active), 
+                  ~ .x/pop*100000)
+    }
+    
+    out <- out %>% select(-pop) 
   }
 
   out
@@ -138,13 +149,19 @@ raw_data_list <- raw_data_list %>%
 
 # COUNTRIES ---------------------------------------------------------------
 
-china_data <- get_cntry_region_ttss("China", raw_data_list = raw_data_list, pop_data = mydata)
+china_data <- get_cntry_region_ttss("China", 
+                                    raw_data_list = raw_data_list, 
+                                    pop_data = mydata)
 
-spain_data <- get_cntry_region_ttss("Spain", raw_data_list = raw_data_list, pop_data = mydata)
+spain_data <- get_cntry_region_ttss("Spain", 
+                                    raw_data_list = raw_data_list, 
+                                    pop_data = mydata)
 
-italy_data <- get_cntry_region_ttss("Italy", raw_data_list = raw_data_list, pop_data = mydata)
+italy_data <- get_cntry_region_ttss("Italy", 
+                                    raw_data_list = raw_data_list,
+                                    pop_data = mydata)
 
-plot(italy_data %>% select(date, confirmed, deaths, recovered))
+plot(italy_data %>% select(date, confirmed, deaths, recovered, active))
 
 plot(italy_data %>% select(date, confirmed), type = "l")
 
@@ -166,6 +183,21 @@ delay_spain_italy
 Conento::descriptivos_n_variables(china_data %>% select(-Lat, -Long))
 Conento::descriptivos_n_variables(italy_data %>% select(-Lat, -Long))
 Conento::descriptivos_n_variables(spain_data %>% select(-Lat, -Long))
+
+china_data_perc_100K <- get_cntry_region_ttss("China", 
+                                              raw_data_list = raw_data_list, 
+                                              pop_data = mydata,
+                                              perc_100K = TRUE)
+
+spain_data_perc_100K <- get_cntry_region_ttss("Spain", 
+                                              raw_data_list = raw_data_list, 
+                                              pop_data = mydata,
+                                              perc_100K = TRUE)
+
+italy_data_perc_100K <- get_cntry_region_ttss("Italy", 
+                                              raw_data_list = raw_data_list,
+                                              pop_data = mydata,
+                                              perc_100K = TRUE)
 
 
 # ESPAÑA ------------------------------------------------------------------
