@@ -226,3 +226,25 @@ pdf_lista <- extract_tables(
 datos <- data.frame(pdf_lista[1])
 
 
+# SPEED -------------------------------------------------------------------
+
+aux <- spain_data %>% mutate(new_confirmed = c(NA, diff(log(confirmed))),
+                             new_active = c(NA, diff(log(active))),
+                             new_deaths = c(NA, diff(log(deaths))))
+
+aux %>% select(date, new_confirmed) %>% plot(type = "l")
+aux_lm <- lm(new_confirmed ~ date, aux %>% filter(!is.infinite(new_confirmed)))
+summary(aux_lm)
+abline(aux_lm, col = "blue")
+
+aux %>% select(date, new_active) %>% plot(type = "l")
+aux_lm <- lm(new_active ~ date, aux %>% filter(!is.infinite(new_active)))
+summary(aux_lm)
+abline(aux_lm, col = "blue")
+
+aux %>% select(date, new_deaths) %>% plot(type = "l")
+aux_lm <- lm(new_deaths ~ date, aux %>% filter(!is.infinite(new_deaths)))
+summary(aux_lm)
+abline(aux_lm, col = "blue")
+
+
