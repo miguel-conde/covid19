@@ -248,3 +248,52 @@ summary(aux_lm)
 abline(aux_lm, col = "blue")
 
 
+# FROM 1st DEATH ----------------------------------------------------------
+
+
+aux <- china_data %>% 
+  filter(deaths > 0) %>% 
+  select(active) %>% 
+  full_join(italy_data %>% 
+              filter(deaths > 0) %>% 
+              select(active),
+            suffix = "_italy") %>% 
+  full_join(spain_data %>% 
+              filter(deaths > 0) %>% 
+              select(active),
+            suffix = "_spain")
+
+china_pruned_data <- china_data %>% 
+  filter(active > 100) %>% 
+  select(active) 
+china_pruned_data <- china_pruned_data %>% 
+  mutate(n_day = 1:nrow(china_pruned_data))
+
+italy_pruned_data <- italy_data %>% 
+  filter(active > 100) %>% 
+  select(active) 
+italy_pruned_data <- italy_pruned_data %>% 
+  mutate(n_day = 1:nrow(italy_pruned_data))
+
+spain_pruned_data <- spain_data %>% 
+  filter(active > 100) %>% 
+  select(active) 
+spain_pruned_data <- spain_pruned_data %>% 
+  mutate(n_day = 1:nrow(spain_pruned_data))
+
+
+china_pruned_data %>% 
+  full_join(italy_pruned_data, by = "n_day", suffix = c("_ch", "_it") )%>% 
+  full_join(spain_pruned_data, by = "n_day")
+
+aux <- italy_pruned_data %>% 
+  full_join(spain_pruned_data, by = "n_day", suffix = c("_it", "_sp") )
+
+library(ggplot2)
+aux %>% ggplot(aes(x = n_day)) + 
+  geom_line(aes(y = active_it, colour = "active_it")) + 
+  geom_line(aes(y = active_sp, colour = "active_sp")) +
+  xlab("Días tras 100 activos") + 
+  ylab("Enfermos activos")
+
+
