@@ -250,19 +250,6 @@ abline(aux_lm, col = "blue")
 
 # FROM 1st DEATH ----------------------------------------------------------
 
-
-aux <- china_data %>% 
-  filter(deaths > 0) %>% 
-  select(active) %>% 
-  full_join(italy_data %>% 
-              filter(deaths > 0) %>% 
-              select(active),
-            suffix = "_italy") %>% 
-  full_join(spain_data %>% 
-              filter(deaths > 0) %>% 
-              select(active),
-            suffix = "_spain")
-
 china_pruned_data <- china_data %>% 
   filter(active > 100) %>% 
   select(active) 
