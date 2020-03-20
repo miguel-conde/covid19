@@ -9,7 +9,8 @@ library(tidyverse)
 
 WORLD_POP_URL <- "http://api.worldbank.org/v2/en/indicator/SP.POP.TOTL?downloadformat=csv"
 
-POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv"
+# POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv"
+POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
 
 CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
 DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
@@ -110,7 +111,9 @@ get_cntry_region_ttss <- function(cntry_reg,
                   ~ .x/pop*100000)
     }
     
-    out <- out %>% select(-pop) 
+    out <- out %>% select(-pop)  %>% 
+      mutate_at(vars(confirmed, deaths, recovered, active),
+                list(new = ~ c(NA, diff(.))))
   }
 
   out
@@ -121,7 +124,6 @@ get_cntry_region_ttss <- function(cntry_reg,
 temp <- tempfile(fileext = ".zip")
 download.file(WORLD_POP_URL, temp, mode="wb")
 unzip(temp, POP_FILE)
-# note that here I modified your original read.table() which did not work
 mydata <- read_csv(POP_FILE, skip = 3)
 mydata <- mydata %>% mutate(X65 = NULL) %>% 
   janitor::clean_names() %>% 
@@ -284,3 +286,16 @@ aux %>% ggplot(aes(x = n_day)) +
   ylab("Enfermos activos")
 
 
+# DIFFs -------------------------------------------------------------------
+
+spain_data <- spain_data %>% 
+  mutate_at(vars(confirmed, deaths, recovered, active),
+            list(new = ~ c(NA, diff(.))))
+
+china_data %>% ggplot(aes(x = date)) + 
+  geom_line(aes(y = deaths_new, colour = "deaths_new")) + 
+  geom_line(aes(y = recovered_new, colour = "recovered_new"))  + 
+  geom_line(aes(y = active_new, colour = "active_new"))
+  xlab("Fecha") + 
+  ylab("Nº")
+  
