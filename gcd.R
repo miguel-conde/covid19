@@ -207,7 +207,7 @@ italy_data_perc_100K <- get_cntry_region_ttss("Italy",
 library(tidyverse)
 library(tabulizer)
 
-ministerio = "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_47_COVID-19.pdf"
+ministerio = "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_49_COVID-19.pdf"
 
 area <- locate_areas(ministerio, pages = 1)
 
@@ -218,7 +218,8 @@ pdf_lista <- extract_tables(
   output = "data.frame",
   pages = c(1),
   area = list(
-    c(337.89431,  90.69972, 684.23597, 510.25186)
+    # c(337.89431,  90.69972, 684.23597, 510.25186)
+    area[[1]]
   ),
   guess = FALSE,
   encoding = "UTF-8"
