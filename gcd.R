@@ -292,10 +292,17 @@ spain_data <- spain_data %>%
   mutate_at(vars(confirmed, deaths, recovered, active),
             list(new = ~ c(NA, diff(.))))
 
-china_data %>% ggplot(aes(x = date)) + 
+p <- spain_data %>% ggplot(aes(x = date)) + 
   geom_line(aes(y = deaths_new, colour = "deaths_new")) + 
   geom_line(aes(y = recovered_new, colour = "recovered_new"))  + 
-  geom_line(aes(y = active_new, colour = "active_new"))
+  geom_line(aes(y = active_new, colour = "active_new")) +
   xlab("Fecha") + 
   ylab("Nº")
+p
+
+# p + geom_line(aes(x = seq.Date(from = as.Date("2020-03-13"), 
+#                                length.out = 8,
+#                                by = 1),
+#                   y = 15000/36*(1:8) + 582),
+#               colour = "black")
   
