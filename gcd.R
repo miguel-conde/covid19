@@ -317,3 +317,41 @@ p
 # INE ---------------------------------------------------------------------
 
 # https://www.ine.es/jaxiT3/Tabla.htm?t=14819&L=0
+
+
+# ESTIMATING EXP ----------------------------------------------------------
+
+data_exp <- spain_data %>% 
+  filter(deaths > 0) 
+data_exp <- data_exp %>% 
+  mutate(n_day = 1:nrow(data_exp))
+
+sp_lm <- lm(log(deaths) ~ n_day - 1, data_exp)
+summary(sp_lm)
+plot(sp_lm)
+
+plot(data_exp %>% select(n_day, deaths), type = "l")
+k <- coef(sp_lm)[1]
+a <- exp(k)
+lines(data_exp$n_day, a^data_exp$n_day, col = "blue", lty = 2)
+lines(data_exp$n_day, exp(k*data_exp$n_day), col = "red", lty = 3)
+
+library(tvReg)
+data_exp <- data_exp %>% 
+  mutate(log_deaths = log(deaths))
+tvp_sp_lm <- tvLM(log_deaths ~ n_day - 1, data = data_exp)
+summary(tvp_sp_lm)
+plot(tvp_sp_lm, ylim = c(0, .5))
+
+
+plot(data_exp %>% select(n_day, deaths), type = "l")
+k_t <- coef(tvp_sp_lm)[,1]
+a_t <- exp(k_t)
+lines(data_exp$n_day, a_t^data_exp$n_day, col = "blue", lty = 2)
+lines(data_exp$n_day, exp(k_t*data_exp$n_day), col = "red", lty = 3)
+
+plot(1:length(k_t), log(2)/k_t, type = "l",
+     ylim = c(0, 2),
+     main = "Days to double deaths",
+     xlab = "Days",
+     ylab = "Days to double deaths")
