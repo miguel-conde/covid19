@@ -227,7 +227,7 @@ pdf_lista <- extract_tables(
 
 
 datos <- data.frame(pdf_lista[1])
-
+datos <- datos %>% janitor::clean_names() 
 
 # SPEED -------------------------------------------------------------------
 
@@ -254,20 +254,20 @@ abline(aux_lm, col = "blue")
 # FROM 1st DEATH ----------------------------------------------------------
 
 china_pruned_data <- china_data %>% 
-  filter(active > 100) %>% 
-  select(active) 
+  filter(active > 100) # %>% 
+  # select(active) 
 china_pruned_data <- china_pruned_data %>% 
   mutate(n_day = 1:nrow(china_pruned_data))
 
 italy_pruned_data <- italy_data %>% 
-  filter(active > 100) %>% 
-  select(active) 
+  filter(active > 100) # %>% 
+  # select(active) 
 italy_pruned_data <- italy_pruned_data %>% 
   mutate(n_day = 1:nrow(italy_pruned_data))
 
 spain_pruned_data <- spain_data %>% 
-  filter(active > 100) %>% 
-  select(active) 
+  filter(active > 100) # %>% 
+  # select(active) 
 spain_pruned_data <- spain_pruned_data %>% 
   mutate(n_day = 1:nrow(spain_pruned_data))
 
@@ -285,6 +285,12 @@ aux %>% ggplot(aes(x = n_day)) +
   geom_line(aes(y = active_sp, colour = "active_sp")) +
   xlab("Días tras 100 activos") + 
   ylab("Enfermos activos")
+
+aux %>% ggplot(aes(x = n_day)) + 
+  geom_line(aes(y = deaths_it, colour = "deaths_it")) + 
+  geom_line(aes(y = deaths_sp, colour = "deaths_sp")) +
+  xlab("Días tras 100 activos") + 
+  ylab("Muertes")
 
 
 # DIFFs -------------------------------------------------------------------
@@ -307,3 +313,7 @@ p
 #                   y = 15000/36*(1:8) + 582),
 #               colour = "black")
   
+
+# INE ---------------------------------------------------------------------
+
+# https://www.ine.es/jaxiT3/Tabla.htm?t=14819&L=0
