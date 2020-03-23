@@ -337,10 +337,12 @@ lines(data_exp$n_day, a^data_exp$n_day, col = "blue", lty = 2)
 lines(data_exp$n_day, exp(k*data_exp$n_day), col = "red", lty = 3)
 
 library(tvReg)
-data_exp <- data_exp %>% 
-  mutate(log_deaths = log(deaths))
-tvp_sp_lm <- tvLM(log_deaths ~ n_day - 1, 
-                  data = data_exp %>% select(n_day, log_deaths))
+# data_exp <- data_exp %>% 
+#   mutate(log_deaths = log(deaths))
+# tvp_sp_lm <- tvLM(log_deaths ~ n_day - 1, 
+#                   data = data_exp %>% select(n_day, log_deaths))
+tvp_sp_lm <- tvLM(log(deaths) ~ n_day - 1, 
+                  data = data_exp)
 summary(tvp_sp_lm)
 plot(tvp_sp_lm, ylim = c(0, .5))
 
@@ -370,6 +372,12 @@ plot(model.tvLM.95)
 forecast(tvp_sp_lm, 
          n.ahead = 10, 
          newx = matrix(nrow(data_exp) + (1:10), byrow = FALSE))
+forecast(tvp_sp_lm, 
+         n.ahead = 10, 
+         newx = data.frame(n_day = nrow(data_exp) + (1:10)))
+forecast(tvp_sp_lm, 
+         data.frame(n_day = nrow(data_exp) + (1:10)), 
+         n.ahead = 10)
 
 
 data("RV")
