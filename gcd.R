@@ -16,6 +16,8 @@ CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/m
 DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
 RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
 
+# MINISTERIO SANIDAD
+URL_MIN <- "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_XX_COVID-19.pdf" 
 
 # AUXILIARY FUNCTIONS -----------------------------------------------------
 
@@ -207,7 +209,7 @@ italy_data_perc_100K <- get_cntry_region_ttss("Italy",
 library(tidyverse)
 library(tabulizer)
 
-ministerio = "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_49_COVID-19.pdf"
+ministerio = URL_MIN %>%   str_replace("XX", "52")
 
 area <- locate_areas(ministerio, pages = 1)
 
@@ -341,7 +343,7 @@ library(tvReg)
 #   mutate(log_deaths = log(deaths))
 # tvp_sp_lm <- tvLM(log_deaths ~ n_day - 1, 
 #                   data = data_exp %>% select(n_day, log_deaths))
-tvp_sp_lm <- tvLM(log(deaths) ~ n_day - 1, 
+tvp_sp_lm <- tvLM(log(deaths) ~ 0 + n_day, 
                   data = data_exp)
 summary(tvp_sp_lm)
 plot(tvp_sp_lm, ylim = c(0, .5))
@@ -372,12 +374,6 @@ plot(model.tvLM.95)
 forecast(tvp_sp_lm, 
          n.ahead = 10, 
          newx = matrix(nrow(data_exp) + (1:10), byrow = FALSE))
-forecast(tvp_sp_lm, 
-         n.ahead = 10, 
-         newx = data.frame(n_day = nrow(data_exp) + (1:10)))
-forecast(tvp_sp_lm, 
-         data.frame(n_day = nrow(data_exp) + (1:10)), 
-         n.ahead = 10)
 
 
 data("RV")
