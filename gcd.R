@@ -209,7 +209,7 @@ italy_data_perc_100K <- get_cntry_region_ttss("Italy",
 library(tidyverse)
 library(tabulizer)
 
-ministerio = URL_MIN %>%   str_replace("XX", "53")
+ministerio = URL_MIN %>%   str_replace("XX", "55")
 
 area <- locate_areas(ministerio, pages = 1)
 
@@ -328,7 +328,7 @@ data_exp <- spain_data %>%
 data_exp <- data_exp %>% 
   mutate(n_day = 1:nrow(data_exp))
 
-sp_lm <- lm(log(deaths) ~ n_day - 1, data_exp)
+sp_lm <- lm(log(deaths) ~ n_day, data_exp)
 summary(sp_lm)
 plot(sp_lm)
 
@@ -343,20 +343,19 @@ library(tvReg)
 #   mutate(log_deaths = log(deaths))
 # tvp_sp_lm <- tvLM(log_deaths ~ n_day - 1, 
 #                   data = data_exp %>% select(n_day, log_deaths))
-tvp_sp_lm <- tvLM(log(deaths) ~ 0 + n_day, 
+tvp_sp_lm <- tvLM(log(deaths) ~ n_day, 
                   data = data_exp)
 summary(tvp_sp_lm)
-plot(tvp_sp_lm, ylim = c(0, .5))
+plot(tvp_sp_lm)
 
 
 plot(data_exp %>% select(n_day, deaths), type = "l")
-k_t <- coef(tvp_sp_lm)[,1]
-a_t <- exp(k_t)
-lines(data_exp$n_day, a_t^data_exp$n_day, col = "blue", lty = 2)
-lines(data_exp$n_day, exp(k_t*data_exp$n_day), col = "red", lty = 3)
+k_t <- coef(tvp_sp_lm)[,2]
+beta_0 <- coef(tvp_sp_lm)[,1]
+lines(data_exp$n_day, exp(beta_0) * exp(k_t*data_exp$n_day), col = "red", lty = 3)
 
 plot(1:length(k_t), log(2)/k_t, type = "l",
-     ylim = c(0, 2),
+     # ylim = c(0, 2),
      main = "Days to double deaths",
      xlab = "Days",
      ylab = "Days to double deaths")
@@ -371,24 +370,24 @@ model.tvLM.95 <- confint(model.tvLM.90)
 plot(model.tvLM.90)
 plot(model.tvLM.95)
 
-forecast(tvp_sp_lm, 
-         n.ahead = 10, 
-         newx = matrix(nrow(data_exp) + (1:10), byrow = FALSE))
+fcst_n_day <- nrow(data_exp) + (1:10)
+fcst_date <- (data_exp %>% tail(1) %>% pull(date)) + (1:10)
+fcst_deaths <- forecast(tvp_sp_lm, 
+                        n.ahead = 10, 
+                        newx = matrix(fcst_n_day, byrow = FALSE)) %>% 
+  exp()
+fcst <- tibble(date = fcst_date, n_day = fcst_n_day, deaths = fcst_deaths)
 
+data_exp %>% select(n_day, deaths) %>% 
+  plot(type = "l", xlim = c(0,30), ylim = c(0,10000))
 
-data("RV")
-RV2 <- head(RV, 2001)
-tvHAR <- tvLM (RV ~ RV_lag + RV_week + RV_month, data = RV2, bw = 20)
-newx <- cbind(RV$RV_lag[2002:2004], RV$RV_week[2002:2004],
-              RV$RV_month[2002:2004])
-forecast(tvHAR, newx, n.ahead = 3)
+lines(fcst %>% select(n_day, deaths), lty = 2, col = "red", type = "o")
 
-N <- floor(0.3719278 / 0.004631507) + (21 - 6)
-ks <- seq(0.4414004, 0, length.out = N)
-y <- exp(ks * (1:N))
-plot(y, type = "l")
+aux <- bind_rows(data_exp %>% select(date, n_day, deaths),
+                 fcst) %>% 
+  mutate(new_deaths = c(0, diff(deaths)))
 
-Sys.Date() + N/2
+plot(aux %>% select(date, new_deaths), type = "o")
 
 
 # EST EXP II --------------------------------------------------------------
@@ -396,7 +395,7 @@ Sys.Date() + N/2
 tvp_sp_lm <- tvLM(log(deaths) ~ log(n_day), 
                   data = data_exp)
 summary(tvp_sp_lm)
-plot(tvp_sp_lm, ylim = c(0, .5))
+plot(tvp_sp_lm)
 
 
 plot(data_exp %>% select(n_day, deaths), type = "l")
@@ -405,8 +404,8 @@ beta_0 <- coef(tvp_sp_lm)[,1]
 lines(data_exp$n_day, exp(beta_0) * data_exp$n_day^k_t, 
       col = "red", lty = 3)
 
-plot(1:length(k_t), log(2)/k_t, type = "l",
-     ylim = c(0, 2),
+plot(1:length(k_t), (2^(1/k_t) - 1) * data_exp$n_day, type = "l",
+     # ylim = c(0, 2),
      main = "Days to double deaths",
      xlab = "Days",
      ylab = "Days to double deaths")
