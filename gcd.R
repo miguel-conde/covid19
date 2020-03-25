@@ -393,25 +393,17 @@ Sys.Date() + N/2
 
 # EST EXP II --------------------------------------------------------------
 
-M <- max(data_exp$deaths)
-m <- min(data_exp$deaths)
-
-scaled_deaths <- (M - data_exp$deaths) / (M - m) + .1
-
-y <- 1 - scaled_deaths
-n <- data_exp$n_day
-exp_data_2 <- tibble(n_day = n, y = y, deaths = data_exp$deaths, 
-                     scaled_deaths = scaled_deaths)
-tvp_sp_lm <- tvLM(log(1 - y) ~ 0 + n_day, 
-                  data = exp_data_2)
+tvp_sp_lm <- tvLM(log(deaths) ~ log(n_day), 
+                  data = data_exp)
 summary(tvp_sp_lm)
-plot(tvp_sp_lm)
+plot(tvp_sp_lm, ylim = c(0, .5))
 
 
-plot(exp_data_2 %>% select(n_day, deaths), type = "l")
-k_t <- -coef(tvp_sp_lm)[,1]
-deaths_hat <- (1 - exp(-k_t*exp_data_2$n_day)) * (M - m) - .1 + m
-lines(data_exp$n_day, deaths_hat, col = "red", lty = 3)
+plot(data_exp %>% select(n_day, deaths), type = "l")
+k_t <- coef(tvp_sp_lm)[,2]
+beta_0 <- coef(tvp_sp_lm)[,1]
+lines(data_exp$n_day, exp(beta_0) * data_exp$n_day^k_t, 
+      col = "red", lty = 3)
 
 plot(1:length(k_t), log(2)/k_t, type = "l",
      ylim = c(0, 2),
@@ -419,32 +411,21 @@ plot(1:length(k_t), log(2)/k_t, type = "l",
      xlab = "Days",
      ylab = "Days to double deaths")
 
-##Obtain the 90% confidence interval of the coefficients for an object of the class attribute tvlm
-model.tvLM.90 <- confint (tvp_sp_lm, level = 0.90, runs = 50)
-
-##Obtain the 95% confidence interval of the same object. This will reused the resamples of object model.tvLM.90. So the second confidence interval calculation is faster
-model.tvLM.95 <- confint(model.tvLM.90)
-
-##Plot coefficient estimates and confidence intervals (if calculated) of objects of the class attribute tvlm
-plot(model.tvLM.90)
-plot(model.tvLM.95)
-
-forecast(tvp_sp_lm, 
+fcst_n_day <- nrow(data_exp) + (1:10)
+fcst_date <- (data_exp %>% tail(1) %>% pull(date)) + (1:10)
+fcst_deaths <- forecast(tvp_sp_lm, 
          n.ahead = 10, 
-         newx = matrix(nrow(data_exp) + (1:10), byrow = FALSE))
+         newx = matrix(log(fcst_n_day), byrow = FALSE)) %>% 
+  exp()
+fcst <- tibble(date = fcst_date, n_day = fcst_n_day, deaths = fcst_deaths)
 
+data_exp %>% select(n_day, deaths) %>% 
+  plot(type = "l", xlim = c(0,30), ylim = c(0,10000))
 
-data("RV")
-RV2 <- head(RV, 2001)
-tvHAR <- tvLM (RV ~ RV_lag + RV_week + RV_month, data = RV2, bw = 20)
-newx <- cbind(RV$RV_lag[2002:2004], RV$RV_week[2002:2004],
-              RV$RV_month[2002:2004])
-forecast(tvHAR, newx, n.ahead = 3)
+lines(fcst %>% select(n_day, deaths), lty = 2, col = "red", type = "o")
 
-N <- floor(0.3719278 / 0.004631507) + (21 - 6)
-ks <- seq(0.4414004, 0, length.out = N)
-y <- exp(ks * (1:N))
-plot(y, type = "l")
+aux <- bind_rows(data_exp %>% select(date, n_day, deaths),
+                 fcst) %>% 
+  mutate(new_deaths = c(0, diff(deaths)))
 
-Sys.Date() + N/2
-
+plot(aux %>% select(date, new_deaths), type = "o")
