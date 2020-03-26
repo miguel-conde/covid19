@@ -162,7 +162,8 @@ SP_REPORTS_INFO <- tribble(
   52, as.Date("2020/03/22"), "NEW_2", 1, 2, NA, NA, NA, NA,
   53, as.Date("2020/03/23"), "NEW_3", 1, 1, NA, NA, NA, NA,
   54, as.Date("2020/03/24"), "NEW_3", 1, 1, NA, NA, NA, NA,
-  55, as.Date("2020/03/25"), "NEW_3", 1, 1, NA, NA, NA, NA
+  55, as.Date("2020/03/25"), "NEW_3", 1, 1, NA, NA, NA, NA,
+  56, as.Date("2020/03/26"), "NEW_3", 1, 1, NA, NA, NA, NA
 )
 
 get_reports_lst <- function(reports_info = SP_REPORTS_INFO) {

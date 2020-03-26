@@ -1,6 +1,6 @@
 
 # LIBRARIES and SOURCES ---------------------------------------------------
-
+library(tvReg)
 library(tidyverse)
 
 source("utils.R")
@@ -349,11 +349,7 @@ a <- exp(k)
 lines(data_exp$n_day, a^data_exp$n_day, col = "blue", lty = 2)
 lines(data_exp$n_day, exp(k*data_exp$n_day), col = "red", lty = 3)
 
-library(tvReg)
-# data_exp <- data_exp %>% 
-#   mutate(log_deaths = log(deaths))
-# tvp_sp_lm <- tvLM(log_deaths ~ n_day - 1, 
-#                   data = data_exp %>% select(n_day, log_deaths))
+
 tvp_sp_lm <- tvLM(log(deaths) ~ n_day, 
                   data = data_exp)
 summary(tvp_sp_lm)
