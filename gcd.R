@@ -1,8 +1,9 @@
 
 # LIBRARIES and SOURCES ---------------------------------------------------
 
-
 library(tidyverse)
+
+source("utils.R")
 
 # CONSTANTS ---------------------------------------------------------------
 
@@ -12,9 +13,12 @@ WORLD_POP_URL <- "http://api.worldbank.org/v2/en/indicator/SP.POP.TOTL?downloadf
 # POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv"
 POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
 
-CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
-DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
-RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
+# CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
+# DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
+# RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
+CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
+RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
 
 # MINISTERIO SANIDAD
 URL_MIN <- "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_XX_COVID-19.pdf" 
@@ -70,7 +74,7 @@ get_cntry_region_ttss <- function(cntry_reg,
   
   if(!is.null(pop_data)) {
     out <- out %>% 
-    full_join(pop_data, by = c("country_region" = "country_name"))
+      full_join(pop_data, by = c("country_region" = "country_name"))
   }
   
   if(is.null(prov_st)) {
@@ -117,7 +121,7 @@ get_cntry_region_ttss <- function(cntry_reg,
       mutate_at(vars(confirmed, deaths, recovered, active),
                 list(new = ~ c(NA, diff(.))))
   }
-
+  
   out
 }
 
@@ -203,33 +207,40 @@ italy_data_perc_100K <- get_cntry_region_ttss("Italy",
                                               pop_data = mydata,
                                               perc_100K = TRUE)
 
+spain_last_data_perc_100K <- spain_data_perc_100K %>% tail(1)
+italy_past_perc_100K <- italy_data_perc_100K %>%
+  filter(confirmed < (spain_last_data %>% pull(confirmed))) %>%
+  tail(1) %>%
+  pull(date)
+
+spain_last_date_perc_100K <- spain_last_data_perc_100K %>% pull(date)
+
+delay_spain_italy_perc_100K <- italy_past_perc_100K - spain_last_date_perc_100K
+
+delay_spain_italy_perc_100K
+
 
 # ESPAÑA ------------------------------------------------------------------
 
-library(tidyverse)
-library(tabulizer)
+datos <- get_reports_lst()
+kkk <- datos %>% map_dfr(~ .x, .id = "date") %>%
+  mutate(date = as.Date(date)) %>%
+  as_tibble
 
-ministerio = URL_MIN %>%   str_replace("XX", "55")
+kkkk <- kkk %>% 
+  select(date, ccaa, fallecidos) %>% 
+  spread("ccaa", "fallecidos")
 
-area <- locate_areas(ministerio, pages = 1)
+res_impute <- kkkk %>% 
+  right_join(tibble(date = seq(from = min(kkkk$date),
+                               to = max(kkkk$date),
+                               by = 1)),
+             by = "date")
 
-area[[1]]
+impute()
 
-pdf_lista <- extract_tables(
-  ministerio,
-  output = "data.frame",
-  pages = c(1),
-  area = list(
-    # c(337.89431,  90.69972, 684.23597, 510.25186)
-    area[[1]]
-  ),
-  guess = FALSE,
-  encoding = "UTF-8"
-)
-
-
-datos <- data.frame(pdf_lista[1])
-datos <- datos %>% janitor::clean_names() 
+kkkk %>%
+  select(date, "ESPAÑA")
 
 # SPEED -------------------------------------------------------------------
 
@@ -257,19 +268,19 @@ abline(aux_lm, col = "blue")
 
 china_pruned_data <- china_data %>% 
   filter(active > 100) # %>% 
-  # select(active) 
+# select(active) 
 china_pruned_data <- china_pruned_data %>% 
   mutate(n_day = 1:nrow(china_pruned_data))
 
 italy_pruned_data <- italy_data %>% 
   filter(active > 100) # %>% 
-  # select(active) 
+# select(active) 
 italy_pruned_data <- italy_pruned_data %>% 
   mutate(n_day = 1:nrow(italy_pruned_data))
 
 spain_pruned_data <- spain_data %>% 
   filter(active > 100) # %>% 
-  # select(active) 
+# select(active) 
 spain_pruned_data <- spain_pruned_data %>% 
   mutate(n_day = 1:nrow(spain_pruned_data))
 
@@ -314,7 +325,7 @@ p
 #                                by = 1),
 #                   y = 15000/36*(1:8) + 582),
 #               colour = "black")
-  
+
 
 # INE ---------------------------------------------------------------------
 
@@ -413,8 +424,8 @@ plot(1:length(k_t), (2^(1/k_t) - 1) * data_exp$n_day, type = "l",
 fcst_n_day <- nrow(data_exp) + (1:10)
 fcst_date <- (data_exp %>% tail(1) %>% pull(date)) + (1:10)
 fcst_deaths <- forecast(tvp_sp_lm, 
-         n.ahead = 10, 
-         newx = matrix(log(fcst_n_day), byrow = FALSE)) %>% 
+                        n.ahead = 10, 
+                        newx = matrix(log(fcst_n_day), byrow = FALSE)) %>% 
   exp()
 fcst <- tibble(date = fcst_date, n_day = fcst_n_day, deaths = fcst_deaths)
 
