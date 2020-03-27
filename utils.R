@@ -1,4 +1,32 @@
 library(tabulizer)
+library(tidyverse)
+
+
+# CONSTANTS ---------------------------------------------------------------
+
+CCAA_CODIGO_ISO = tribble(~ccaa_codigo_iso, ~ccaa,
+                          "AN", "Andalucía",
+                          "AR", "Aragón",
+                          "AS", "Asturias, Principado de",
+                          "CN", "Canarias",
+                          "CB", "Cantabria",
+                          "CM", "Castilla-La Mancha",
+                          "CL", "Castilla y León",
+                          "CT", "Catalunya (Cataluña)",
+                          "EX", "Extremadura",
+                          "GA", "Galicia (Galicia)",
+                          "IB", "Illes Balears (Islas Baleares)",
+                          "RI", "La Rioja",
+                          "MD", "Madrid, Comunidad de",
+                          "MC", "Murcia, Región de",
+                          "NC", "Comunidad Foral de/Nafarroako Foru Komunitateanota",
+                          "PV", "País Vasco/Euskadinota",
+                          "VC", "Valenciana, Comunidad/Valenciana, Comunitat",
+                          "CE", "Ceuta",
+                          "ME", "Melilla")
+# FUNCTIONS ---------------------------------------------------------------
+
+
 
 get_old_sp_table <- function(n, url_min = URL_MIN, info_reports = SP_REPORTS_INFO) {
   
@@ -163,7 +191,8 @@ SP_REPORTS_INFO <- tribble(
   53, as.Date("2020/03/23"), "NEW_3", 1, 1, NA, NA, NA, NA,
   54, as.Date("2020/03/24"), "NEW_3", 1, 1, NA, NA, NA, NA,
   55, as.Date("2020/03/25"), "NEW_3", 1, 1, NA, NA, NA, NA,
-  56, as.Date("2020/03/26"), "NEW_3", 1, 1, NA, NA, NA, NA
+  56, as.Date("2020/03/26"), "NEW_3", 1, 1, NA, NA, NA, NA,
+  57, as.Date("2020/03/27"), "NEW_3", 1, 1, NA, NA, NA, NA
 )
 
 get_reports_lst <- function(reports_info = SP_REPORTS_INFO) {

@@ -22,12 +22,14 @@ RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/m
 
 # MINISTERIO SANIDAD
 URL_MIN <- "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_XX_COVID-19.pdf" 
+CSV_MIN <- "https://covid19.isciii.es/resources/serie_historica_acumulados.csv"
 
 # AUXILIARY FUNCTIONS -----------------------------------------------------
 
 library(tibbletime)
 
 roll_IA_14 <- rollify(function(x) sum(diff(x)), window = 14)
+roll_mean_14 <- rollify(mean, window = 14)
 
 get_cntry_region_ttss <- function(cntry_reg,
                                   raw_data_list,
@@ -222,25 +224,43 @@ delay_spain_italy_perc_100K
 
 # ESPAÑA ------------------------------------------------------------------
 
-datos <- get_reports_lst()
-kkk <- datos %>% map_dfr(~ .x, .id = "date") %>%
-  mutate(date = as.Date(date)) %>%
-  as_tibble
+# datos <- get_reports_lst()
+# raw_datos_min <- datos %>% map_dfr(~ .x, .id = "date") %>%
+#   mutate(date = as.Date(date)) %>%
+#   as_tibble
+datos <- read.csv2(CSV_MIN, sep = ",", 
+                   stringsAsFactors = FALSE) %>% 
+  janitor::clean_names() %>% 
+  mutate(fecha = lubridate::dmy(fecha))
 
-kkkk <- kkk %>% 
-  select(date, ccaa, fallecidos) %>% 
+
+raw_datos_min <- CCAA_CODIGO_ISO %>% 
+  full_join(datos,
+            by = "ccaa_codigo_iso")  %>% 
+  filter(ccaa %in% CCAA_CODIGO_ISO$ccaa) %>% 
+  mutate(ccaa = ifelse(is.na(ccaa),
+                       "ESPAÑA",
+                       ccaa),
+         ccaa_codigo_iso = ifelse(is.na(ccaa_codigo_iso),
+                                  "ES",
+                                  ccaa_codigo_iso)) 
+
+datos_min <- raw_datos_min %>% 
+  select(fecha, ccaa, fallecidos) %>% 
   spread("ccaa", "fallecidos")
+datos_min <- datos_min %>% 
+  mutate(`ESPAÑA` = rowSums(datos_min %>% select_if(is.numeric)))
 
-res_impute <- kkkk %>% 
-  right_join(tibble(date = seq(from = min(kkkk$date),
-                               to = max(kkkk$date),
+res_impute <- datos_min %>% 
+  right_join(tibble(fecha = seq(from = min(datos_min$fecha),
+                               to = max(datos_min$fecha),
                                by = 1)),
-             by = "date")
+             by = "fecha")
 
-impute()
+# impute()
 
-kkkk %>%
-  select(date, "ESPAÑA")
+spain_deaths <- res_impute %>%
+  select(fecha, fallecidos = "ESPAÑA")
 
 # SPEED -------------------------------------------------------------------
 
@@ -334,7 +354,7 @@ p
 
 # ESTIMATING EXP ----------------------------------------------------------
 
-data_exp <- spain_data %>% 
+data_exp <- spain_deaths %>% 
   filter(deaths > 0) 
 data_exp <- data_exp %>% 
   mutate(n_day = 1:nrow(data_exp))
@@ -425,13 +445,20 @@ fcst_deaths <- forecast(tvp_sp_lm,
   exp()
 fcst <- tibble(date = fcst_date, n_day = fcst_n_day, deaths = fcst_deaths)
 
-data_exp %>% select(n_day, deaths) %>% 
-  plot(type = "l", xlim = c(0,30), ylim = c(0,10000))
+data_exp %>% select(date, deaths) %>% 
+  plot(type = "l", xlim = c(min(data_exp$date), max(fcst$date)), 
+       ylim = c(0, max(fcst$deaths)))
 
-lines(fcst %>% select(n_day, deaths), lty = 2, col = "red", type = "o")
+lines(fcst %>% select(date, deaths), lty = 2, col = "red", type = "o")
 
 aux <- bind_rows(data_exp %>% select(date, n_day, deaths),
                  fcst) %>% 
   mutate(new_deaths = c(0, diff(deaths)))
 
 plot(aux %>% select(date, new_deaths), type = "o")
+
+# dy / dt
+dy_dt <- c(NA, diff(k_t))*(1:length(k_t)) + k_t + c(NA, diff(beta_0))
+dy_dt <- dy_dt * data_exp$deaths
+plot(dy_dt, type = "l")
+abline(h = 0, lty = 2)
