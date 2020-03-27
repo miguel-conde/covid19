@@ -355,7 +355,7 @@ p
 # ESTIMATING EXP ----------------------------------------------------------
 
 data_exp <- spain_deaths %>% 
-  filter(deaths > 0) 
+  filter(fallecidos > 0) 
 data_exp <- data_exp %>% 
   mutate(n_day = 1:nrow(data_exp))
 
@@ -419,13 +419,13 @@ plot(aux %>% select(date, new_deaths), type = "o")
 
 # EST EXP II --------------------------------------------------------------
 
-tvp_sp_lm <- tvLM(log(deaths) ~ log(n_day), 
+tvp_sp_lm <- tvLM(log(fallecidos) ~ log(n_day), 
                   data = data_exp)
 summary(tvp_sp_lm)
 plot(tvp_sp_lm)
 
 
-plot(data_exp %>% select(n_day, deaths), type = "l")
+plot(data_exp %>% select(n_day, fallecidos), type = "l")
 k_t <- coef(tvp_sp_lm)[,2]
 beta_0 <- coef(tvp_sp_lm)[,1]
 lines(data_exp$n_day, exp(beta_0) * data_exp$n_day^k_t, 
@@ -438,27 +438,27 @@ plot(1:length(k_t), (2^(1/k_t) - 1) * data_exp$n_day, type = "l",
      ylab = "Days to double deaths")
 
 fcst_n_day <- nrow(data_exp) + (1:10)
-fcst_date <- (data_exp %>% tail(1) %>% pull(date)) + (1:10)
+fcst_date <- (data_exp %>% tail(1) %>% pull(fecha)) + (1:10)
 fcst_deaths <- forecast(tvp_sp_lm, 
                         n.ahead = 10, 
                         newx = matrix(log(fcst_n_day), byrow = FALSE)) %>% 
   exp()
-fcst <- tibble(date = fcst_date, n_day = fcst_n_day, deaths = fcst_deaths)
+fcst <- tibble(fecha = fcst_date, n_day = fcst_n_day, fallecidos = fcst_deaths)
 
-data_exp %>% select(date, deaths) %>% 
-  plot(type = "l", xlim = c(min(data_exp$date), max(fcst$date)), 
-       ylim = c(0, max(fcst$deaths)))
+data_exp %>% select(fecha, fallecidos) %>% 
+  plot(type = "l", xlim = c(min(data_exp$fecha), max(fcst$fecha)), 
+       ylim = c(0, max(fcst$fallecidos)))
 
-lines(fcst %>% select(date, deaths), lty = 2, col = "red", type = "o")
+lines(fcst %>% select(fecha, fallecidos), lty = 2, col = "red", type = "o")
 
-aux <- bind_rows(data_exp %>% select(date, n_day, deaths),
+aux <- bind_rows(data_exp %>% select(fecha, n_day, fallecidos),
                  fcst) %>% 
-  mutate(new_deaths = c(0, diff(deaths)))
+  mutate(new_deaths = c(0, diff(fallecidos)))
 
-plot(aux %>% select(date, new_deaths), type = "o")
+plot(aux %>% select(fecha, new_deaths), type = "o")
 
 # dy / dt
 dy_dt <- c(NA, diff(k_t))*(1:length(k_t)) + k_t + c(NA, diff(beta_0))
-dy_dt <- dy_dt * data_exp$deaths
+dy_dt <- dy_dt * data_exp$fallecidos
 plot(dy_dt, type = "l")
 abline(h = 0, lty = 2)
