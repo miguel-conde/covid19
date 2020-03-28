@@ -7,141 +7,13 @@ source("utils.R")
 
 # CONSTANTS ---------------------------------------------------------------
 
-
-WORLD_POP_URL <- "http://api.worldbank.org/v2/en/indicator/SP.POP.TOTL?downloadformat=csv"
-
-# POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv"
-POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
-
-# CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
-# DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
-# RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
-CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
-RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
-
-# MINISTERIO SANIDAD
-URL_MIN <- "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_XX_COVID-19.pdf" 
-CSV_MIN <- "https://covid19.isciii.es/resources/serie_historica_acumulados.csv"
-
 # AUXILIARY FUNCTIONS -----------------------------------------------------
-
-library(tibbletime)
-
-roll_IA_14 <- rollify(function(x) sum(diff(x)), window = 14)
-roll_mean_14 <- rollify(mean, window = 14)
-
-get_cntry_region_ttss <- function(cntry_reg,
-                                  raw_data_list,
-                                  prov_st = NULL,
-                                  pop_data = NULL,
-                                  perc_100K = FALSE) {
-  # browser()
-  ts_cofirmed <- raw_data_list[["confirmed_ts"]] %>%
-    filter(country_region == cntry_reg)
-  ts_deaths <- raw_data_list[["deaths_ts"]] %>%
-    filter(country_region == cntry_reg)
-  ts_recovered <- raw_data_list[["recovered_ts"]] %>%
-    filter(country_region == cntry_reg)
-  
-  if (!is.null(prov_st)) {
-    ts_cofirmed <- ts_cofirmed %>%
-      filter(province_state == prov_st)
-    
-    ts_deaths <- ts_deaths %>%
-      filter(country_region == prov_st)
-    
-    ts_recovered <- ts_recovered %>%
-      filter(country_region == prov_st)
-  }
-  
-  ts_cofirmed <- ts_cofirmed %>%
-    gather("date", "confirmed",
-           -c("province_state", "country_region", "Lat", "Long")) %>%
-    mutate(date = lubridate::mdy(date))
-  
-  ts_deaths <- ts_deaths %>%
-    gather("date", "deaths",
-           -c("province_state", "country_region", "Lat", "Long")) %>%
-    mutate(date = lubridate::mdy(date))
-  
-  ts_recovered <- ts_recovered %>%
-    gather("date", "recovered",
-           -c("province_state", "country_region", "Lat", "Long")) %>%
-    mutate(date = lubridate::mdy(date))
-  
-  out <- ts_cofirmed %>% full_join(ts_deaths) %>% 
-    full_join(ts_recovered) %>% 
-    mutate(active = confirmed - deaths - recovered)
-  
-  if(!is.null(pop_data)) {
-    out <- out %>% 
-      full_join(pop_data, by = c("country_region" = "country_name"))
-  }
-  
-  if(is.null(prov_st)) {
-    if(!is.null(pop_data)) {
-      out <- out %>% 
-        group_by(date) %>% 
-        summarise(Lat = mean(Lat),
-                  Long = mean(Long),
-                  confirmed = sum(confirmed),
-                  deaths = sum(deaths),
-                  recovered = sum(recovered),
-                  active = sum(active),
-                  pop = mean(x2018)) %>% 
-        ungroup()
-    } else {
-      out <- out %>% 
-        group_by(date) %>% 
-        summarise(Lat = mean(Lat),
-                  Long = mean(Long),
-                  confirmed = sum(confirmed),
-                  deaths = sum(deaths),
-                  recovered = sum(recovered),
-                  active = sum(active)) %>% 
-        ungroup()
-    }
-    
-  } 
-  
-  if(!is.null(pop_data)) {
-    out <- out %>%
-      mutate(IA_14 = 
-               (roll_IA_14(confirmed) - 
-                  roll_IA_14(deaths) - 
-                  roll_IA_14(recovered)) / pop * 1e5) %>% 
-      drop_na
-    
-    if(perc_100K == TRUE) {
-      out <- out %>% 
-        mutate_at(vars(confirmed, deaths, recovered, active), 
-                  ~ .x/pop*100000)
-    }
-    
-    out <- out %>% select(-pop)  %>% 
-      mutate_at(vars(confirmed, deaths, recovered, active),
-                list(new = ~ c(NA, diff(.))))
-  }
-  
-  out
-}
 
 # WORLD POP DATA ----------------------------------------------------------
 
-temp <- tempfile(fileext = ".zip")
-download.file(WORLD_POP_URL, temp, mode="wb")
-unzip(temp, POP_FILE)
-mydata <- read_csv(POP_FILE, skip = 3)
-mydata <- mydata %>% mutate(X65 = NULL) %>% 
-  janitor::clean_names() %>% 
-  drop_na(x2018) %>% 
-  select(country_name, x2018)
-unlink(temp)
-unlink(POP_FILE)
+mydata <- get_world_pop_data()
 
 # COV19 DATA --------------------------------------------------------------
-
 
 confirmed_ts <- read_csv(file = CONFIRMED_TS_URL)
 deaths_ts    <- read_csv(file = DEATHS_TS_URL)
@@ -224,40 +96,9 @@ delay_spain_italy_perc_100K
 
 # ESPAÑA ------------------------------------------------------------------
 
-# datos <- get_reports_lst()
-# raw_datos_min <- datos %>% map_dfr(~ .x, .id = "date") %>%
-#   mutate(date = as.Date(date)) %>%
-#   as_tibble
-datos <- read.csv2(CSV_MIN, sep = ",", 
-                   stringsAsFactors = FALSE) %>% 
-  janitor::clean_names() %>% 
-  mutate(fecha = lubridate::dmy(fecha))
+raw_datos_min <- get_csv_min_sanidad()
 
-
-raw_datos_min <- CCAA_CODIGO_ISO %>% 
-  full_join(datos,
-            by = "ccaa_codigo_iso")  %>% 
-  filter(ccaa %in% CCAA_CODIGO_ISO$ccaa) %>% 
-  mutate(ccaa = ifelse(is.na(ccaa),
-                       "ESPAÑA",
-                       ccaa),
-         ccaa_codigo_iso = ifelse(is.na(ccaa_codigo_iso),
-                                  "ES",
-                                  ccaa_codigo_iso)) 
-
-datos_min <- raw_datos_min %>% 
-  select(fecha, ccaa, fallecidos) %>% 
-  spread("ccaa", "fallecidos")
-datos_min <- datos_min %>% 
-  mutate(`ESPAÑA` = rowSums(datos_min %>% select_if(is.numeric)))
-
-res_impute <- datos_min %>% 
-  right_join(tibble(fecha = seq(from = min(datos_min$fecha),
-                               to = max(datos_min$fecha),
-                               by = 1)),
-             by = "fecha")
-
-# impute()
+res_impute <- datos_min_ccaa_col(raw_datos_min, fallecidos)
 
 spain_deaths <- res_impute %>%
   select(fecha, fallecidos = "ESPAÑA")
@@ -266,7 +107,8 @@ spain_deaths <- res_impute %>%
 
 aux <- spain_data %>% mutate(new_confirmed = c(NA, diff(log(confirmed))),
                              new_active = c(NA, diff(log(active))),
-                             new_deaths = c(NA, diff(log(deaths))))
+                             new_deaths = c(NA, diff(log(deaths)))) %>% 
+  filter(date > as.Date("2020-02-15"))
 
 aux %>% select(date, new_confirmed) %>% plot(type = "l")
 aux_lm <- lm(new_confirmed ~ date, aux %>% filter(!is.infinite(new_confirmed)))
