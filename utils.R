@@ -288,6 +288,7 @@ datos_min_ccaa <- function(raw_datos_min, cod_ccaa) {
   
   if(cod_ccaa == "ES") {
     out <- raw_datos_min %>% 
+      filter(ccaa_codigo_iso  == cod_ccaa) %>% 
       group_by(fecha) %>% 
       summarise_if(is.numeric, sum, na.rm = TRUE)
     out <- tibble(ccaa_codigo_iso = rep("ES", nrow(out)),
