@@ -3,7 +3,7 @@
 library(tvReg)
 library(tidyverse)
 
-source("utils.R")
+source("utils.R", encoding = "UTF8")
 
 # CONSTANTS ---------------------------------------------------------------
 
@@ -34,6 +34,10 @@ raw_data_list <- raw_data_list %>%
 china_data <- get_cntry_region_ttss("China", 
                                     raw_data_list = raw_data_list, 
                                     pop_data = mydata)
+
+s_korea_data <- get_cntry_region_ttss("Korea, South", 
+                                      raw_data_list = raw_data_list, 
+                                      pop_data = mydata)
 
 spain_data <- get_cntry_region_ttss("Spain", 
                                     raw_data_list = raw_data_list, 
@@ -66,42 +70,93 @@ Conento::descriptivos_n_variables(china_data %>% select(-Lat, -Long))
 Conento::descriptivos_n_variables(italy_data %>% select(-Lat, -Long))
 Conento::descriptivos_n_variables(spain_data %>% select(-Lat, -Long))
 
-china_data_perc_100K <- get_cntry_region_ttss("China", 
+china_data_per_100K <- get_cntry_region_ttss("China", 
                                               raw_data_list = raw_data_list, 
                                               pop_data = mydata,
-                                              perc_100K = TRUE)
+                                              per_100K = TRUE)
 
-spain_data_perc_100K <- get_cntry_region_ttss("Spain", 
+spain_data_per_100K <- get_cntry_region_ttss("Spain", 
                                               raw_data_list = raw_data_list, 
                                               pop_data = mydata,
-                                              perc_100K = TRUE)
+                                              per_100K = TRUE)
 
-italy_data_perc_100K <- get_cntry_region_ttss("Italy", 
+italy_data_per_100K <- get_cntry_region_ttss("Italy", 
                                               raw_data_list = raw_data_list,
                                               pop_data = mydata,
-                                              perc_100K = TRUE)
+                                              per_100K = TRUE)
 
-spain_last_data_perc_100K <- spain_data_perc_100K %>% tail(1)
-italy_past_perc_100K <- italy_data_perc_100K %>%
+spain_last_data_per_100K <- spain_data_per_100K %>% tail(1)
+italy_past_per_100K <- italy_data_per_100K %>%
   filter(confirmed < (spain_last_data %>% pull(confirmed))) %>%
   tail(1) %>%
   pull(date)
 
-spain_last_date_perc_100K <- spain_last_data_perc_100K %>% pull(date)
+spain_last_date_per_100K <- spain_last_data_per_100K %>% pull(date)
 
-delay_spain_italy_perc_100K <- italy_past_perc_100K - spain_last_date_perc_100K
+delay_spain_italy_per_100K <- italy_past_per_100K - spain_last_date_per_100K
 
-delay_spain_italy_perc_100K
+delay_spain_italy_per_100K
 
 
 # ESPAÑA ------------------------------------------------------------------
 
 raw_datos_min <- get_csv_min_sanidad()
 
-res_impute <- datos_min_ccaa_col(raw_datos_min, fallecidos)
+datos_fallecidos <- 
+  datos_min_ccaa_col(raw_datos_min, fallecidos)
+datos_fallecidos_var_units <- 
+  datos_min_ccaa_col(raw_datos_min, fallecidos, "units")
 
-spain_deaths <- res_impute %>%
-  select(fecha, fallecidos = "ESPAÑA")
+datos_fallecidos_per_100K <- 
+  datos_min_ccaa_col(raw_datos_min, fallecidos, per_100K = TRUE)
+datos_fallecidos_per_100K_var_units <- 
+  datos_min_ccaa_col(raw_datos_min, fallecidos, "perc", per_100K = TRUE)
+
+datos_fallecidos_var_perc <- datos_min_ccaa_col(raw_datos_min, fallecidos)
+
+datos_fallecidos_var_units
+
+spain_deaths <- datos_fallecidos %>%
+  select(fecha, fallecidos = "ES")
+
+datos_min_ccaa(raw_datos_min, "ES")
+
+
+
+### DEL PDF
+kk <- get_reports_lst() 
+
+# kkk equivale a raw_datos_min
+kkk <- kk %>% map_dfr(~ .x, .id = "date") %>%
+  mutate(date = as.Date(date)) %>%
+  as_tibble %>% 
+  full_join(CCAA_CODIGO_ISO, by = "ccaa") %>% 
+  rename(casos = total_confirmados,
+         fecha = date) %>% 
+  mutate(activos = casos  - fallecidos - curados,
+         ccaa_codigo_iso = ifelse(is.na(ccaa_codigo_iso),
+                                  "ES",
+                                  ccaa_codigo_iso))
+
+hc_min_ccaa(kkk, "MD", c("casos_per_100K", 
+                         "fallecidos_per_100K", 
+                         "curados_per_100K",
+                         "activos_per_100K"))
+
+hc_min_ccaa_col(kkk, fallecidos, per_100K = FALSE)
+hc_min_ccaa_col(kkk, fallecidos, per_100K = TRUE)
+
+## kkkk equivale a datos_fallecidos
+kkkk <- datos_min_ccaa_col(kkk, fallecidos)
+
+kkkk %>%
+  select(fecha, "ES")
+
+
+
+
+
+
 
 # SPEED -------------------------------------------------------------------
 
