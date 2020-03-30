@@ -4,83 +4,8 @@ library(highcharter)
 library(INEbaseR)
 library(tidyverse)
 
+source("global.R", encoding = "UTF8")
 
-# CONSTANTS ---------------------------------------------------------------
-
-WORLD_POP_URL <- "http://api.worldbank.org/v2/en/indicator/SP.POP.TOTL?downloadformat=csv"
-
-# POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv"
-POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
-
-# CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
-# DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
-# RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
-CONFIRMED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-DEATHS_TS_URL    <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
-RECOVERED_TS_URL <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
-
-# MINISTERIO SANIDAD
-URL_MIN <- "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_XX_COVID-19.pdf" 
-CSV_MIN <- "https://covid19.isciii.es/resources/serie_historica_acumulados.csv"
-
-
-CCAA_CODIGO_ISO = tribble(~ccaa_codigo_iso, ~ccaa,
-                          # "ES", "España",
-                          "AN", "Andalucía",
-                          "AR", "Aragón",
-                          "AS", "Asturias, Principado de",
-                          "CN", "Canarias",
-                          "CB", "Cantabria",
-                          "CM", "Castilla-La Mancha",
-                          "CL", "Castilla y León",
-                          "CT", "Catalunya (Cataluña)",
-                          "EX", "Extremadura",
-                          "GA", "Galicia (Galicia)",
-                          "IB", "Illes Balears (Islas Baleares)",
-                          "RI", "La Rioja",
-                          "MD", "Madrid, Comunidad de",
-                          "MC", "Murcia, Región de",
-                          "NC", "Comunidad Foral de/Nafarroako Foru Komunitateanota",
-                          "PV", "País Vasco/Euskadinota",
-                          "VC", "Valenciana, Comunidad/Valenciana, Comunitat",
-                          "CE", "Ceuta",
-                          "ME", "Melilla")
-
-# Defunciones según la Causa de Muerte
-# {"Id":23, "Cod_IOE":"30417", "Nombre":"Estadística de Defunciones según la Causa de Muerte", "Codigo":"ECM"}
-URL_INE_DEFUNC <- "https://www.ine.es/jaxiT3/Tabla.htm?t=14819&L=0"
-# Población CCAA
-URL_INE_CCAA_POB <- "https://www.ine.es/jaxiT3/Datos.htm?t=2853#!tabs-tabla"
-
-POP_SP = tribble(
-  ~ccaa_codigo_iso, ~ccaa, ~pob,
-  "ES", "España", "47026208",
-  "AN", "01 Andalucía", "8414240",
-  "AR", "02 Aragón", "1319291",
-  "AS", "03 Asturias, Principado de", "1022800",
-  "IB", "04 Balears, Illes", "1149460",
-  "CN", "05 Canarias", "2153389",
-  "CB", "06 Cantabria", "581078",
-  "CL", "07 Castilla y León", "2399548",
-  "CM", "08 Castilla - La Mancha", "2032863",
-  "CT", "09 Cataluña", "7675217",
-  "VC", "10 Comunitat Valenciana", "5003769",
-  "EX", "11 Extremadura", "1067710",
-  "GA", "12 Galicia", "2699499",
-  "MD", "13 Madrid, Comunidad de", "6663394",
-  "MC", "14 Murcia, Región de", "1493898",
-  "NC", "15 Navarra, Comunidad Foral de", "654214",
-  "PV", "16 País Vasco", "2207776",
-  "RI", "17 Rioja, La", "316798",
-  "CE", "18 Ceuta", "84777",
-  "ME", "19 Melilla", "86487"
-) %>% mutate(pob = as.integer(pob)) %>% 
-  select(-ccaa) %>% 
-  full_join(CCAA_CODIGO_ISO, by = "ccaa_codigo_iso") %>% 
-  mutate(ccaa = ifelse(is.na(ccaa),
-                       "España",
-                       ccaa)) %>% 
-  change_nom_ccaa()
 
 # FUNCTIONS ---------------------------------------------------------------
 
@@ -235,15 +160,16 @@ calc_vars <- function(in_data, var_mode) {
 
 datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
                                var_res = c("none", "units", "perc"),
-                               per_100K = FALSE) {
+                               per_100K = FALSE,
+                               info_ccaa = tbl_ccaa) {
   
   var_mode <- match.arg(var_res)
   
   enquo_tgt_var <- enquo(tgt_var)
   
   datos_min <- raw_datos_min %>% 
-    select(fecha, ccaa_codigo_iso, !!enquo_tgt_var) %>% 
-    spread("ccaa_codigo_iso", quo_name(enquo_tgt_var))
+    select(fecha, codigo_iso, !!enquo_tgt_var) %>% 
+    spread("codigo_iso", quo_name(enquo_tgt_var))
   # datos_min <- datos_min %>% 
   #   mutate(ES = rowSums(datos_min %>% select_if(is.numeric), na.rm = TRUE))
   
@@ -255,8 +181,8 @@ datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
   
   if (per_100K == TRUE) {
     aux <- out %>% select(-fecha)
-    aux2 <- POP_SP$pob
-    names(aux2) <- POP_SP$ccaa_codigo_iso
+    aux2 <- info_ccaa$pob
+    names(aux2) <- info_ccaa$ccaa_codigo_iso
     aux2 <- aux2[names(aux)] / 100000
     
     aux <- sweep(aux, 2, STATS = aux2, FUN = "/") %>% 
@@ -284,26 +210,26 @@ datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
   return(out)
 }
 
-datos_min_ccaa <- function(raw_datos_min, cod_ccaa) {
+datos_min_ccaa <- function(raw_datos_min, cod_ccaa, info_ccaa = tbl_ccaa) {
   
   if(cod_ccaa == "ES") {
     out <- raw_datos_min %>% 
-      filter(ccaa_codigo_iso  == cod_ccaa) %>% 
+      filter(codigo_iso  == cod_ccaa) %>% 
       group_by(fecha) %>% 
       summarise_if(is.numeric, sum, na.rm = TRUE)
-    out <- tibble(ccaa_codigo_iso = rep("ES", nrow(out)),
+    out <- tibble(codigo_iso = rep("ES", nrow(out)),
                   ccaa = rep("España", nrow(out))) %>% 
       bind_cols(out)
   } else {
     out <- raw_datos_min %>% 
-      filter(ccaa_codigo_iso  == cod_ccaa) %>% 
+      filter(codigo_iso  == cod_ccaa) %>% 
       right_join(tibble(fecha = seq(from = min(raw_datos_min$fecha),
                                     to = max(raw_datos_min$fecha),
                                     by = 1)),
                  by = "fecha")
   }
   
-  ref_pop <- POP_SP %>% filter(ccaa_codigo_iso == cod_ccaa) %>% pull(pob)
+  ref_pop <- info_ccaa %>% filter(codigo_iso == cod_ccaa) %>% pull(pob)
   out <- out %>% 
     mutate_if(is.numeric, list(per_100K = ~ . / ref_pop * 100000)) %>%
     mutate_if(is.numeric, list(var = ~ c(NA, diff(.)))) %>% 
@@ -707,18 +633,24 @@ get_ine_data <- function(code, date_start = "2010-01-01") {
 
 # PLOTS -------------------------------------------------------------------
 
-hc_min_ccaa_col <- function(in_data, tgt_col, ...) {
+hc_min_ccaa_col <- function(in_data, tgt_col, info_ccaa = tbl_ccaa,
+                            plot_type = "line", ...) {
   
   quo_tgt_col <- enquo(tgt_col)
   
   plot_data <- datos_min_ccaa_col(in_data, !!quo_tgt_col, ...)
   
-  out <- hchart(plot_data %>% 
-                  gather(ccaa_codigo_iso, fallecidos, -fecha)  %>% 
-                  mutate(ccaa_codigo_iso = str_remove(ccaa_codigo_iso, "_.+$")) %>% 
-                  left_join(CCAA_CODIGO_ISO) %>% 
-                  mutate(ccaa = ifelse(is.na(ccaa), "España", ccaa)), 
-                "line", hcaes(x = fecha, y = !!quo_tgt_col, group = ccaa))
+  hc_data <- plot_data %>% 
+    gather(codigo_iso, fallecidos, -fecha)  %>% 
+    mutate(codigo_iso = str_remove(codigo_iso, "_.+$")) %>% 
+    left_join(info_ccaa %>% 
+                select(codigo_iso, ccaa)) %>% 
+    mutate(ccaa = ifelse(is.na(ccaa), "España", ccaa)) %>% 
+    select(-codigo_iso)
+  
+  out <- hchart(hc_data, 
+                type = plot_type, 
+                hcaes(x = fecha, y = !!quo_tgt_col, group = ccaa))
   
   out
 }
@@ -727,8 +659,8 @@ hc_min_ccaa_col <- function(in_data, tgt_col, ...) {
 hc_min_ccaa <- function(in_data, tgt_ccaa, metricas = NULL) {
   
   plot_data <- datos_min_ccaa(in_data, tgt_ccaa) %>% 
-    select(-ccaa_codigo_iso) %>% 
-    gather(metrica, valor, -fecha, -ccaa) 
+    select(-starts_with("codigo_"), -starts_with("ccaa")) %>% 
+    gather(metrica, valor, -fecha) 
   
   if (!is.null(metricas)) {
     plot_data <- plot_data %>% 

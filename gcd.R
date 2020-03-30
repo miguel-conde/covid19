@@ -9,15 +9,15 @@ source("utils.R", encoding = "UTF8")
 
 # AUXILIARY FUNCTIONS -----------------------------------------------------
 
+
 # WORLD POP DATA ----------------------------------------------------------
+my_data <- readRDS(WLD_POP_RDS)
 
-mydata <- get_world_pop_data()
+# COUNTRIES ---------------------------------------------------------------
 
-# COV19 DATA --------------------------------------------------------------
-
-confirmed_ts <- read_csv(file = CONFIRMED_TS_URL)
-deaths_ts    <- read_csv(file = DEATHS_TS_URL)
-recovered_ts <- read_csv(file = RECOVERED_TS_URL)
+confirmed_ts <- readRDS(CONFIRMED_TS_RDS)
+deaths_ts <- readRDS(DEATHS_TS_RDS)
+recovered_ts <- readRDS(RECOVERED_TS_RDS)
 
 raw_data_list <- list(confirmed_ts = confirmed_ts,
                       deaths_ts = deaths_ts,
@@ -27,9 +27,6 @@ raw_data_list <- raw_data_list %>%
   lapply(function(x) {
     x %>% rename_if(is.character, janitor::make_clean_names)
   })
-
-
-# COUNTRIES ---------------------------------------------------------------
 
 china_data <- get_cntry_region_ttss("China", 
                                     raw_data_list = raw_data_list, 
@@ -69,6 +66,7 @@ delay_spain_italy
 Conento::descriptivos_n_variables(china_data %>% select(-Lat, -Long))
 Conento::descriptivos_n_variables(italy_data %>% select(-Lat, -Long))
 Conento::descriptivos_n_variables(spain_data %>% select(-Lat, -Long))
+Conento::descriptivos_n_variables(s_korea_data %>% select(-Lat, -Long))
 
 china_data_per_100K <- get_cntry_region_ttss("China", 
                                               raw_data_list = raw_data_list, 
@@ -100,7 +98,20 @@ delay_spain_italy_per_100K
 
 # ESPAÑA ------------------------------------------------------------------
 
-raw_datos_min <- get_csv_min_sanidad()
+tbl_ccaa <- readRDS(RDS_TBL_CCAA)
+
+raw_datos_min <- readRDS(RDS_CASOS_CCAA_LONG) %>% 
+  rename(casos = total) %>% 
+  full_join(readRDS(RDS_FALLECIDOS_CCAA_LONG) %>% 
+              rename(fallecidos = total)) %>% 
+  full_join(readRDS(RDS_ALTAS_CCAA_LONG) %>% 
+              rename(altas = total)) %>% 
+  mutate(activos = casos - fallecidos - altas) %>% 
+  rename(codigo_ine = cod_ine) %>%
+  select(-ccaa) %>% 
+  full_join(tbl_ccaa %>% select(-pob))
+
+# raw_datos_min <- get_csv_min_sanidad()
 
 datos_fallecidos <- 
   datos_min_ccaa_col(raw_datos_min, fallecidos)
@@ -120,6 +131,21 @@ spain_deaths <- datos_fallecidos %>%
   select(fecha, fallecidos = "ES")
 
 datos_min_ccaa(raw_datos_min, "ES")
+
+### pLOTS
+hc_min_ccaa(raw_datos_min, "MD", c("casos_per_100K", 
+                         "fallecidos_per_100K", 
+                         "altas_per_100K",
+                         "activos_per_100K"))
+
+hc_min_ccaa_col(raw_datos_min, fallecidos, per_100K = FALSE)
+hc_min_ccaa_col(raw_datos_min, fallecidos, per_100K = TRUE)
+
+## kkkk equivale a datos_fallecidos
+kkkk <- datos_min_ccaa_col(raw_datos_min, fallecidos)
+
+kkkk %>%
+  select(fecha, "ES")
 
 
 
@@ -256,7 +282,7 @@ data_exp <- spain_deaths %>%
 data_exp <- data_exp %>% 
   mutate(n_day = 1:nrow(data_exp))
 
-sp_lm <- lm(log(deaths) ~ n_day, data_exp)
+sp_lm <- lm(log(fallecidos) ~ n_day, data_exp)
 summary(sp_lm)
 plot(sp_lm)
 
