@@ -9,42 +9,25 @@ source("utils.R", encoding = "UTF8")
 
 # AUXILIARY FUNCTIONS -----------------------------------------------------
 
-
-# WORLD POP DATA ----------------------------------------------------------
-mydata <- readRDS(WLD_POP_RDS)
-
 # COUNTRIES ---------------------------------------------------------------
-
-# confirmed_ts <- readRDS(CONFIRMED_TS_RDS)
-# deaths_ts <- readRDS(DEATHS_TS_RDS)
-# recovered_ts <- readRDS(RECOVERED_TS_RDS)
-# 
-# clean_data_list <- list(confirmed_ts = confirmed_ts,
-#                       deaths_ts = deaths_ts,
-#                       recovered_ts = recovered_ts)
-# 
-# clean_data_list <- clean_data_list %>% 
-#   lapply(function(x) {
-#     x %>% rename_if(is.character, janitor::make_clean_names)
-#   })
 
 clean_data_list <- get_jhu_clean_data()
 
 china_data <- get_cntry_region_ttss("China", 
                                     clean_data_list = clean_data_list, 
-                                    pop_data = mydata)
+                                    pop_data = wld_pop_data)
 
 s_korea_data <- get_cntry_region_ttss("Korea, South", 
                                       clean_data_list = clean_data_list, 
-                                      pop_data = mydata)
+                                      pop_data = wld_pop_data)
 
 spain_data <- get_cntry_region_ttss("Spain", 
                                     clean_data_list = clean_data_list, 
-                                    pop_data = mydata)
+                                    pop_data = wld_pop_data)
 
 italy_data <- get_cntry_region_ttss("Italy", 
                                     clean_data_list = clean_data_list,
-                                    pop_data = mydata)
+                                    pop_data = wld_pop_data)
 
 plot(italy_data %>% select(date, confirmed, deaths, recovered, active))
 
@@ -72,17 +55,17 @@ Conento::descriptivos_n_variables(s_korea_data %>% select(-Lat, -Long))
 
 china_data_per_100K <- get_cntry_region_ttss("China", 
                                               clean_data_list = clean_data_list, 
-                                              pop_data = mydata,
+                                              pop_data = wld_pop_data,
                                               per_100K = TRUE)
 
 spain_data_per_100K <- get_cntry_region_ttss("Spain", 
                                               clean_data_list = clean_data_list, 
-                                              pop_data = mydata,
+                                              pop_data = wld_pop_data,
                                               per_100K = TRUE)
 
 italy_data_per_100K <- get_cntry_region_ttss("Italy", 
                                               clean_data_list = clean_data_list,
-                                              pop_data = mydata,
+                                              pop_data = wld_pop_data,
                                               per_100K = TRUE)
 
 spain_last_data_per_100K <- spain_data_per_100K %>% tail(1)

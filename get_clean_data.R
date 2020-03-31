@@ -26,7 +26,7 @@ get_sp_clean_data <- function() {
 }
 
 # WORLD POP DATA ----------------------------------------------------------
-mydata <- readRDS(WLD_POP_RDS)
+wld_pop_data <- readRDS(WLD_POP_RDS)
 
 # COUNTRIES ---------------------------------------------------------------
 
