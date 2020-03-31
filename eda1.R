@@ -2,6 +2,7 @@
 # LIBRARIES and SOURCES ---------------------------------------------------
 library(tvReg)
 
+source("get_clean_data.R", encoding = "UTF8")
 source("utils.R", encoding = "UTF8")
 
 # CONSTANTS ---------------------------------------------------------------
@@ -97,55 +98,43 @@ delay_spain_italy_per_100K
 
 # ESPAÑA ------------------------------------------------------------------
 
-tbl_ccaa <- readRDS(RDS_TBL_CCAA)
+clean_datos_min <- get_sp_clean_data()
 
-raw_datos_min <- readRDS(RDS_CASOS_CCAA_LONG) %>% 
-  rename(casos = total) %>% 
-  full_join(readRDS(RDS_FALLECIDOS_CCAA_LONG) %>% 
-              rename(fallecidos = total)) %>% 
-  full_join(readRDS(RDS_ALTAS_CCAA_LONG) %>% 
-              rename(altas = total)) %>% 
-  mutate(activos = casos - fallecidos - altas) %>% 
-  rename(codigo_ine = cod_ine) %>%
-  select(-ccaa) %>% 
-  full_join(tbl_ccaa %>% select(-pob))
-
-# raw_datos_min <- get_csv_min_sanidad()
 
 datos_fallecidos <- 
-  datos_min_ccaa_col(raw_datos_min, fallecidos)
+  datos_min_ccaa_col(clean_datos_min, fallecidos)
 datos_fallecidos_var_units <- 
-  datos_min_ccaa_col(raw_datos_min, fallecidos, "units")
+  datos_min_ccaa_col(clean_datos_min, fallecidos, "units")
 
 datos_fallecidos_per_100K <- 
-  datos_min_ccaa_col(raw_datos_min, fallecidos, per_100K = TRUE)
+  datos_min_ccaa_col(clean_datos_min, fallecidos, per_100K = TRUE)
 datos_fallecidos_per_100K_var_units <- 
-  datos_min_ccaa_col(raw_datos_min, fallecidos, "perc", per_100K = TRUE)
+  datos_min_ccaa_col(clean_datos_min, fallecidos, "perc", per_100K = TRUE)
 
-datos_fallecidos_var_perc <- datos_min_ccaa_col(raw_datos_min, fallecidos, "perc")
+datos_fallecidos_var_perc <- datos_min_ccaa_col(clean_datos_min, fallecidos, "perc")
 
 datos_fallecidos_var_units
 
 spain_deaths <- datos_fallecidos %>%
   select(fecha, fallecidos = "ES")
 
-datos_min_ccaa(raw_datos_min, "ES")
+datos_min_ccaa(clean_datos_min, "ES")
 
 ### pLOTS
-hc_min_ccaa(raw_datos_min, "MD", c("casos_per_100K", 
+hc_min_ccaa(clean_datos_min, "MD", c("casos_per_100K", 
                          "fallecidos_per_100K", 
                          "altas_per_100K",
                          "activos_per_100K"))
-hc_min_ccaa(raw_datos_min, "MD", c("casos_var_perc", 
+hc_min_ccaa(clean_datos_min, "MD", c("casos_var_perc", 
                                    "fallecidos_var_perc", 
                                    "altas_var_perc",
                                    "activos_var_perc"))
 
-hc_min_ccaa_col(raw_datos_min, fallecidos, per_100K = FALSE)
-hc_min_ccaa_col(raw_datos_min, fallecidos, per_100K = TRUE)
+hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = FALSE)
+hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = TRUE)
 
 ## kkkk equivale a datos_fallecidos
-kkkk <- datos_min_ccaa_col(raw_datos_min, fallecidos)
+kkkk <- datos_min_ccaa_col(clean_datos_min, fallecidos)
 
 kkkk %>%
   select(fecha, "ES")
@@ -155,7 +144,7 @@ kkkk %>%
 ### DEL PDF
 kk <- get_reports_lst() 
 
-# kkk equivale a raw_datos_min
+# kkk equivale a clean_datos_min
 kkk <- kk %>% map_dfr(~ .x, .id = "date") %>%
   mutate(date = as.Date(date)) %>%
   as_tibble %>% 
