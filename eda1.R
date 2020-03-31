@@ -15,33 +15,35 @@ mydata <- readRDS(WLD_POP_RDS)
 
 # COUNTRIES ---------------------------------------------------------------
 
-confirmed_ts <- readRDS(CONFIRMED_TS_RDS)
-deaths_ts <- readRDS(DEATHS_TS_RDS)
-recovered_ts <- readRDS(RECOVERED_TS_RDS)
+# confirmed_ts <- readRDS(CONFIRMED_TS_RDS)
+# deaths_ts <- readRDS(DEATHS_TS_RDS)
+# recovered_ts <- readRDS(RECOVERED_TS_RDS)
+# 
+# clean_data_list <- list(confirmed_ts = confirmed_ts,
+#                       deaths_ts = deaths_ts,
+#                       recovered_ts = recovered_ts)
+# 
+# clean_data_list <- clean_data_list %>% 
+#   lapply(function(x) {
+#     x %>% rename_if(is.character, janitor::make_clean_names)
+#   })
 
-raw_data_list <- list(confirmed_ts = confirmed_ts,
-                      deaths_ts = deaths_ts,
-                      recovered_ts = recovered_ts)
-
-raw_data_list <- raw_data_list %>% 
-  lapply(function(x) {
-    x %>% rename_if(is.character, janitor::make_clean_names)
-  })
+clean_data_list <- get_jhu_clean_data()
 
 china_data <- get_cntry_region_ttss("China", 
-                                    raw_data_list = raw_data_list, 
+                                    clean_data_list = clean_data_list, 
                                     pop_data = mydata)
 
 s_korea_data <- get_cntry_region_ttss("Korea, South", 
-                                      raw_data_list = raw_data_list, 
+                                      clean_data_list = clean_data_list, 
                                       pop_data = mydata)
 
 spain_data <- get_cntry_region_ttss("Spain", 
-                                    raw_data_list = raw_data_list, 
+                                    clean_data_list = clean_data_list, 
                                     pop_data = mydata)
 
 italy_data <- get_cntry_region_ttss("Italy", 
-                                    raw_data_list = raw_data_list,
+                                    clean_data_list = clean_data_list,
                                     pop_data = mydata)
 
 plot(italy_data %>% select(date, confirmed, deaths, recovered, active))
@@ -69,17 +71,17 @@ Conento::descriptivos_n_variables(spain_data %>% select(-Lat, -Long))
 Conento::descriptivos_n_variables(s_korea_data %>% select(-Lat, -Long))
 
 china_data_per_100K <- get_cntry_region_ttss("China", 
-                                              raw_data_list = raw_data_list, 
+                                              clean_data_list = clean_data_list, 
                                               pop_data = mydata,
                                               per_100K = TRUE)
 
 spain_data_per_100K <- get_cntry_region_ttss("Spain", 
-                                              raw_data_list = raw_data_list, 
+                                              clean_data_list = clean_data_list, 
                                               pop_data = mydata,
                                               per_100K = TRUE)
 
 italy_data_per_100K <- get_cntry_region_ttss("Italy", 
-                                              raw_data_list = raw_data_list,
+                                              clean_data_list = clean_data_list,
                                               pop_data = mydata,
                                               per_100K = TRUE)
 
@@ -132,48 +134,6 @@ hc_min_ccaa(clean_datos_min, "MD", c("casos_var_perc",
 
 hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = FALSE)
 hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = TRUE)
-
-## kkkk equivale a datos_fallecidos
-kkkk <- datos_min_ccaa_col(clean_datos_min, fallecidos)
-
-kkkk %>%
-  select(fecha, "ES")
-
-
-
-### DEL PDF
-kk <- get_reports_lst() 
-
-# kkk equivale a clean_datos_min
-kkk <- kk %>% map_dfr(~ .x, .id = "date") %>%
-  mutate(date = as.Date(date)) %>%
-  as_tibble %>% 
-  full_join(CCAA_CODIGO_ISO, by = "ccaa") %>% 
-  rename(casos = total_confirmados,
-         fecha = date) %>% 
-  mutate(activos = casos  - fallecidos - curados,
-         ccaa_codigo_iso = ifelse(is.na(ccaa_codigo_iso),
-                                  "ES",
-                                  ccaa_codigo_iso))
-
-hc_min_ccaa(kkk, "MD", c("casos_per_100K", 
-                         "fallecidos_per_100K", 
-                         "curados_per_100K",
-                         "activos_per_100K"))
-
-hc_min_ccaa_col(kkk, fallecidos, per_100K = FALSE)
-hc_min_ccaa_col(kkk, fallecidos, per_100K = TRUE)
-
-## kkkk equivale a datos_fallecidos
-kkkk <- datos_min_ccaa_col(kkk, fallecidos)
-
-kkkk %>%
-  select(fecha, "ES")
-
-
-
-
-
 
 
 # SPEED -------------------------------------------------------------------
