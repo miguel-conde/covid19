@@ -1,3 +1,9 @@
+library(highcharter)
+library(tidyverse)
+# library(dplyr)
+# library(tidyr)
+# library(stringr)
+
 # CONSTANTS ---------------------------------------------------------------
 
 DIR_DATALAKE <- here::here("data", "datalake")

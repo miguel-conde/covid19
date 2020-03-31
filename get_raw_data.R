@@ -2,12 +2,31 @@
 
 # LIBRARIES and SOURCES ---------------------------------------------------
 library(readr)
-library(stringdist)
-library(tidyverse)
 
-source("utils.R", encoding = "UTF8")
+source("global.R", encoding = "UTF8")
+# source("utils.R", encoding = "UTF8")
 
 # 1 - CONSTANTS -----------------------------------------------------------
+# 
+# 
+
+# AUXILIARY FUNCTIONS -----------------------------------------------------
+
+get_world_pop_data <- function() {
+  
+  temp <- tempfile(fileext = ".zip")
+  download.file(WORLD_POP_URL, temp, mode="wb")
+  unzip(temp, POP_FILE)
+  mydata <- read_csv(POP_FILE, skip = 3)
+  mydata <- mydata %>% mutate(X65 = NULL) %>% 
+    janitor::clean_names() %>% 
+    drop_na(x2018) %>% 
+    select(country_name, x2018)
+  unlink(temp)
+  unlink(POP_FILE)
+  
+  return(mydata)
+}
 
 # 1.1 - CCAA - CÓDIGO ISO -------------------------------------------------
 

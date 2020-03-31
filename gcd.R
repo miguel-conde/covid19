@@ -1,7 +1,6 @@
 
 # LIBRARIES and SOURCES ---------------------------------------------------
 library(tvReg)
-library(tidyverse)
 
 source("utils.R", encoding = "UTF8")
 
@@ -11,7 +10,7 @@ source("utils.R", encoding = "UTF8")
 
 
 # WORLD POP DATA ----------------------------------------------------------
-my_data <- readRDS(WLD_POP_RDS)
+mydata <- readRDS(WLD_POP_RDS)
 
 # COUNTRIES ---------------------------------------------------------------
 
