@@ -229,12 +229,13 @@ datos_min_ccaa <- function(raw_datos_min, cod_ccaa, info_ccaa = tbl_ccaa) {
                  by = "fecha")
   }
   
+  aux <- out %>% select_if(is.numeric) %>% names()
   ref_pop <- info_ccaa %>% filter(codigo_iso == cod_ccaa) %>% pull(pob)
   out <- out %>% 
     mutate_if(is.numeric, list(per_100K = ~ . / ref_pop * 100000)) %>%
     mutate_if(is.numeric, list(var = ~ c(NA, diff(.)))) %>% 
-    mutate_at(vars(ends_with("_var")), 
-              list(perc = ~ (./dplyr::lag(.) - 1) * 100)) %>% 
+    mutate_at(vars(all_of(aux)), 
+              list(var_perc = ~ (./dplyr::lag(.) - 1) * 100)) %>% 
     select(-ends_with("_100K_var_perc"))
   
   # out <- out %>%
@@ -634,14 +635,18 @@ get_ine_data <- function(code, date_start = "2010-01-01") {
 # PLOTS -------------------------------------------------------------------
 
 hc_min_ccaa_col <- function(in_data, tgt_col, info_ccaa = tbl_ccaa,
-                            plot_type = "line", ...) {
+                            # plot_type = "line", 
+                            ...) {
   
   quo_tgt_col <- enquo(tgt_col)
   
+  # print(paste("looking at", quo_name(quo_tgt_col)))
+  
   plot_data <- datos_min_ccaa_col(in_data, !!quo_tgt_col, ...)
+  # plot_data <- datos_min_ccaa_col(in_data, tgt_col, ...)
   
   hc_data <- plot_data %>% 
-    gather(codigo_iso, fallecidos, -fecha)  %>% 
+    gather(codigo_iso, !!quo_tgt_col, -fecha)  %>% 
     mutate(codigo_iso = str_remove(codigo_iso, "_.+$")) %>% 
     left_join(info_ccaa %>% 
                 select(codigo_iso, ccaa)) %>% 
@@ -649,8 +654,12 @@ hc_min_ccaa_col <- function(in_data, tgt_col, info_ccaa = tbl_ccaa,
     select(-codigo_iso)
   
   out <- hchart(hc_data, 
-                type = plot_type, 
-                hcaes(x = fecha, y = !!quo_tgt_col, group = ccaa))
+                type = "line", 
+                hcaes_(x = 'fecha', 
+                      y = quo_name(quo_tgt_col), 
+                      group = 'ccaa')) %>%
+    hc_chart(zoomType = "xy") # %>% 
+  # hc_title(text = quo_name(quo_tgt_col))
   
   out
 }
@@ -668,7 +677,10 @@ hc_min_ccaa <- function(in_data, tgt_ccaa, metricas = NULL) {
   }
   
   out <- hchart(plot_data , 
-                "line", hcaes(x = fecha, y = valor, group = metrica))
+                "line", 
+                hcaes(x = fecha, y = valor, group = metrica)) %>%
+    hc_chart(zoomType = "xy") %>% 
+    hc_title(text = quo_name(tgt_ccaa))
   
   out
 }
