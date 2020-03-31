@@ -7,8 +7,9 @@ source("global.R", encoding = "UTF8")
 
 # FUNCTIONS ---------------------------------------------------------------
 
+tbl_ccaa <- readRDS(RDS_TBL_CCAA)
+
 get_sp_clean_data <- function() {
-  tbl_ccaa <- readRDS(RDS_TBL_CCAA)
   
   out <- readRDS(RDS_CASOS_CCAA_LONG) %>% 
     rename(casos = total) %>% 
