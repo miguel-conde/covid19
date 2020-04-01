@@ -16,7 +16,11 @@ get_sp_clean_data <- function() {
     full_join(readRDS(RDS_FALLECIDOS_CCAA_LONG) %>% 
                 rename(fallecidos = total)) %>% 
     full_join(readRDS(RDS_ALTAS_CCAA_LONG) %>% 
-                rename(altas = total)) %>% 
+                rename(altas = total))  %>% 
+    full_join(readRDS(RDS_HOSPITALIZADOS_CCAA_LONG) %>% 
+                rename(hospitalizados = total))  %>% 
+    full_join(readRDS(RDS_UCI_CCAA_LONG) %>% 
+                rename(uci = total)) %>% 
     mutate(activos = casos - fallecidos - altas) %>% 
     rename(codigo_ine = cod_ine) %>%
     select(-ccaa) %>% 

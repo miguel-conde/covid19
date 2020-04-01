@@ -137,6 +137,18 @@ saveRDS(ccaa_altas_wide, RDS_ALTAS_CCAA_WIDE)
 ccaa_altas_long <- read_csv(URL_ALTAS_CCAA_LONG) %>% janitor::clean_names()
 saveRDS(ccaa_altas_long, RDS_ALTAS_CCAA_LONG)
 
+ccaa_hospitalizados_wide <- read_csv(URL_HOSPITALIZADOS_CCAA_WIDE) %>% janitor::clean_names()
+saveRDS(ccaa_hospitalizados_wide, RDS_HOSPITALIZADOS_CCAA_WIDE)
+
+ccaa_hospitalizados_long <- read_csv(URL_HOSPITALIZADOS_CCAA_LONG) %>% janitor::clean_names()
+saveRDS(ccaa_hospitalizados_long, RDS_HOSPITALIZADOS_CCAA_LONG)
+
+ccaa_uci_wide <- read_csv(URL_UCI_CCAA_WIDE) %>% janitor::clean_names()
+saveRDS(ccaa_uci_wide, RDS_UCI_CCAA_WIDE)
+
+ccaa_uci_long <- read_csv(URL_UCI_CCAA_LONG) %>% janitor::clean_names()
+saveRDS(ccaa_uci_long, RDS_UCI_CCAA_LONG)
+
 
 # 3 - WORLD POP DATA ------------------------------------------------------
 

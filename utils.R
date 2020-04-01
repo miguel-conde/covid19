@@ -112,11 +112,44 @@ get_cntry_region_ttss <- function(cntry_reg,
 
 # Datadista data ----------------------------------------------------------
 
+chg_orig_t <- function(in_data, orig_t) {
+  
+  out <- lapply(in_data %>% select(-fecha),
+                    function(x) {
+                      out <- tibble(x = x[x > orig_t]) %>% 
+                        drop_na()
+                      if(nrow(out) > 0) {
+                        out %>% 
+                          mutate(n_day = 1:nrow(out))
+                      }
+                       
+                    })
+  
+  out <- out[sapply(out,function(x) !is.null(x)) %>% unlist]  
+  
+  if(length(out) == 0) return(NULL)
+  
+  aux_names <- names(out)
+  
+  # names(out) <- names(in_data %>% select(-fecha))
+  
+  out <- out %>% reduce(full_join, by = "n_day") %>% 
+    select(-n_day) 
+  # names(out) <- names(in_data %>% select(-fecha))
+  names(out) <- aux_names
+  
+  out <- tibble(n_day = 1:nrow(out)) %>% 
+    bind_cols(out)
+  
+  out
+}
+
 
 datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
                                var_res = c("none", "units", "perc"),
                                per_100K = FALSE,
-                               info_ccaa = tbl_ccaa) {
+                               info_ccaa = tbl_ccaa,
+                               orig_t = NULL) {
 
   var_mode <- match.arg(var_res)
 
@@ -137,7 +170,7 @@ datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
   if (per_100K == TRUE) {
     aux <- out %>% select(-fecha)
     aux2 <- info_ccaa$pob
-    names(aux2) <- info_ccaa$ccaa_codigo_iso
+    names(aux2) <- info_ccaa$codigo_iso
     aux2 <- aux2[names(aux)] / 100000
 
     aux <- sweep(aux, 2, STATS = aux2, FUN = "/") %>%
@@ -160,6 +193,12 @@ datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
                   list(var_perc = ~ (./dplyr::lag(.) - 1) * 100)) %>%
         select(fecha, ends_with("var_perc"))
     }
+  }
+  
+  if (!is.null(orig_t)) {
+    # aux_names <- names(out)[-1]
+    out <- chg_orig_t(out, orig_t)
+    # names(out)[-1] <- aux_names
   }
 
   return(out)
@@ -210,26 +249,39 @@ hc_min_ccaa_col <- function(in_data, tgt_col, info_ccaa = tbl_ccaa,
   
   quo_tgt_col <- enquo(tgt_col)
   
-  # print(paste("looking at", quo_name(quo_tgt_col)))
-  
   plot_data <- datos_min_ccaa_col(in_data, !!quo_tgt_col, ...)
-  # plot_data <- datos_min_ccaa_col(in_data, tgt_col, ...)
+  
+  if(is.null(plot_data)) return(NULL)
   
   hc_data <- plot_data %>% 
-    gather(codigo_iso, !!quo_tgt_col, -fecha)  %>% 
+    # gather(codigo_iso, !!quo_tgt_col, -fecha)  %>% 
+    gather(codigo_iso, valor, -1)  %>% 
     mutate(codigo_iso = str_remove(codigo_iso, "_.+$")) %>% 
     left_join(info_ccaa %>% 
                 select(codigo_iso, ccaa)) %>% 
     mutate(ccaa = ifelse(is.na(ccaa), "España", ccaa)) %>% 
     select(-codigo_iso)
   
-  out <- hchart(hc_data, 
-                type = "line", 
-                hcaes(x = fecha, 
-                      y = quo_name(quo_tgt_col), 
-                      group = ccaa)) %>%
-    hc_chart(zoomType = "xy") # %>% 
-  # hc_title(text = quo_name(quo_tgt_col))
+  if(names(hc_data)[1] == "fecha") {
+    out <- hchart(hc_data, 
+                  type = "line", 
+                  hcaes(x = fecha, 
+                        # y = quo_name(quo_tgt_col), 
+                        y = valor, 
+                        group = ccaa)) %>%
+      hc_chart(zoomType = "xy") %>% 
+      hc_title(text = quo_name(quo_tgt_col))
+  } else {
+    out <- hchart(hc_data, 
+                  type = "line", 
+                  hcaes(x = n_day, 
+                        # y = quo_name(quo_tgt_col), 
+                        y = valor, 
+                        group = ccaa)) %>%
+      hc_chart(zoomType = "xy") %>% 
+      hc_title(text = quo_name(quo_tgt_col))
+  }
+  
   
   out
 }

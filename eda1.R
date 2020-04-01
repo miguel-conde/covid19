@@ -109,11 +109,15 @@ datos_min_ccaa(clean_datos_min, "ES")
 hc_min_ccaa(clean_datos_min, "MD", c("casos_per_100K", 
                          "fallecidos_per_100K", 
                          "altas_per_100K",
-                         "activos_per_100K"))
+                         "activos_per_100K",
+                         "hospitalizados_per_100K",
+                         "uci_per_100K"))
 hc_min_ccaa(clean_datos_min, "MD", c("casos_var_perc", 
                                    "fallecidos_var_perc", 
                                    "altas_var_perc",
-                                   "activos_var_perc"))
+                                   "activos_var_perc",
+                                   "hospitalizados_var_perc",
+                                   "uci_var_perc"))
 
 hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = FALSE)
 hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = TRUE)

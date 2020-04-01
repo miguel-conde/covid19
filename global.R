@@ -33,10 +33,26 @@ RDS_ALTAS_CCAA_WIDE <- file.path(DIR_DATALAKE, "ccaa_covid19_altas.Rds")
 URL_ALTAS_CCAA_LONG <- paste0(URL_ROOT, "ccaa_covid19_altas_long.csv")
 RDS_ALTAS_CCAA_LONG <- file.path(DIR_DATALAKE, "ccaa_covid19_altas_long.Rds")
 
+## HOSPITALIZADOS
+URL_HOSPITALIZADOS_CCAA_WIDE <- paste0(URL_ROOT, "ccaa_covid19_hospitalizados.csv")
+RDS_HOSPITALIZADOS_CCAA_WIDE <- file.path(DIR_DATALAKE, "ccaa_covid19_hospitalizados.Rds")
+
+URL_HOSPITALIZADOS_CCAA_LONG <- paste0(URL_ROOT, "ccaa_covid19_hospitalizados_long.csv")
+RDS_HOSPITALIZADOS_CCAA_LONG <- file.path(DIR_DATALAKE, "ccaa_covid19_hospitalizados_long.Rds")
+
+## UCI
+URL_UCI_CCAA_WIDE <- paste0(URL_ROOT, "ccaa_covid19_uci.csv")
+RDS_UCI_CCAA_WIDE <- file.path(DIR_DATALAKE, "ccaa_covid19_uci.Rds")
+
+URL_UCI_CCAA_LONG <- paste0(URL_ROOT, "ccaa_covid19_uci_long.csv")
+RDS_UCI_CCAA_LONG <- file.path(DIR_DATALAKE, "ccaa_covid19_uci_long.Rds")
+
+# 2 - DATOS CCAA ----------------------------------------------------------
+
 ## TABLA DATOS CCAA
 RDS_TBL_CCAA <- file.path(DIR_DATALAKE, "tbl_ccaa.Rds")
 
-# 2 - WORLD POPULATION - WORLD BANK ---------------------------------------
+# 3 - WORLD POPULATION - WORLD BANK ---------------------------------------
 
 WORLD_POP_URL <- "http://api.worldbank.org/v2/en/indicator/SP.POP.TOTL?downloadformat=csv"
 
@@ -46,7 +62,7 @@ POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
 WLD_POP_RDS <- file.path(DIR_DATALAKE, "wld_pop.Rds")
 
 
-# 3 - WORLD DATA -JHU -----------------------------------------------------
+# 4 - WORLD DATA -JHU -----------------------------------------------------
 
 JHU_ROOT_URL <- 
   "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/"
@@ -64,7 +80,7 @@ RECOVERED_TS_URL <- paste0(JHU_ROOT_URL, RECOVERED_TS, ".csv")
 RECOVERED_TS_RDS <- file.path(DIR_DATALAKE, paste0(RECOVERED_TS, ".Rds"))
 
 
-# 4 - Ministerio Sanidad --------------------------------------------------
+# 5 - Ministerio Sanidad --------------------------------------------------
 
 # MINISTERIO SANIDAD
 URL_MIN <- "https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/documentos/Actualizacion_XX_COVID-19.pdf" 
