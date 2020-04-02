@@ -68,6 +68,10 @@ italy_data_per_100K <- get_cntry_region_ttss("Italy",
                                               pop_data = wld_pop_data,
                                               per_100K = TRUE)
 
+Conento::descriptivos_n_variables(china_data_per_100K %>% select(-Lat, -Long))
+Conento::descriptivos_n_variables(italy_data_per_100K %>% select(-Lat, -Long))
+Conento::descriptivos_n_variables(spain_data_per_100K %>% select(-Lat, -Long))
+
 spain_last_data_per_100K <- spain_data_per_100K %>% tail(1)
 italy_past_per_100K <- italy_data_per_100K %>%
   filter(confirmed < (spain_last_data %>% pull(confirmed))) %>%
@@ -106,6 +110,13 @@ spain_deaths <- datos_fallecidos %>%
 datos_min_ccaa(clean_datos_min, "ES")
 
 ### pLOTS
+### 
+hc_min_ccaa(clean_datos_min, "MD", c("casos", 
+                                     "fallecidos", 
+                                     "altas",
+                                     "activos",
+                                     "hospitalizados",
+                                     "uci"))
 hc_min_ccaa(clean_datos_min, "MD", c("casos_per_100K", 
                          "fallecidos_per_100K", 
                          "altas_per_100K",
@@ -121,6 +132,7 @@ hc_min_ccaa(clean_datos_min, "MD", c("casos_var_perc",
 
 hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = FALSE)
 hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = TRUE)
+hc_min_ccaa_col(clean_datos_min, fallecidos, per_100K = TRUE, orig_t = 5)
 
 
 # SPEED -------------------------------------------------------------------
