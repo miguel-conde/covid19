@@ -62,6 +62,7 @@ POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
 
 WLD_POP_RDS <- file.path(DIR_DATALAKE, "wld_pop.Rds")
 
+# DATA from https://wits.worldbank.org/wits/wits/witshelp/Content/Codes/Country_Codes.htm
 CSV_WLD_BANK_COUNTRIES <- file.path(DIR_DATA, "world_bank_countries.csv")
 RDS_WLD_BANK_COUNTRIES <- file.path(DIR_DATALAKE, "world_bank_countries.Rds")
 
