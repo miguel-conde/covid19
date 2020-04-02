@@ -8,7 +8,8 @@ source("global.R", encoding = "UTF8")
 
 # 1 - CONSTANTS -----------------------------------------------------------
 # 
-# 
+
+
 
 # AUXILIARY FUNCTIONS -----------------------------------------------------
 
@@ -152,8 +153,17 @@ saveRDS(ccaa_uci_long, RDS_UCI_CCAA_LONG)
 
 # 3 - WORLD POP DATA ------------------------------------------------------
 
-mydata <- get_world_pop_data()
-saveRDS(mydata, WLD_POP_RDS)
+wprld_pop <- get_world_pop_data()
+saveRDS(mydata, wprld_pop)
+
+world_bank_countries <- read_delim(CSV_WLD_BANK_COUNTRIES, 
+                                   ";", 
+                                   escape_double = FALSE, 
+                                   col_types = cols(Code = col_integer()), 
+                                   trim_ws = TRUE) %>% 
+  janitor::clean_names()
+
+saveRDS(world_bank_countries, RDS_WLD_BANK_COUNTRIES)
 
 # 4 - JHU DATA ------------------------------------------------------------
 
@@ -165,4 +175,7 @@ saveRDS(deaths_ts, DEATHS_TS_RDS)
 
 recovered_ts <- read_csv(file = RECOVERED_TS_URL)
 saveRDS(recovered_ts, RECOVERED_TS_RDS)
+
+jhu_countries_table <- read_csv(file = JHU_COUNTRIES_TABLE_URL)
+saveRDS(jhu_countries_table, JHU_COUNTRIES_TABLE_RDS)
 

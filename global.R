@@ -6,7 +6,8 @@ library(tidyverse)
 
 # CONSTANTS ---------------------------------------------------------------
 
-DIR_DATALAKE <- here::here("data", "datalake")
+DIR_DATA <- here::here("data")
+DIR_DATALAKE <- file.path(DIR_DATA, "datalake")
 
 # 1 - ESPAÑA / DATADISTA --------------------------------------------------
 
@@ -61,24 +62,29 @@ POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
 
 WLD_POP_RDS <- file.path(DIR_DATALAKE, "wld_pop.Rds")
 
+CSV_WLD_BANK_COUNTRIES <- file.path(DIR_DATA, "world_bank_countries.csv")
+RDS_WLD_BANK_COUNTRIES <- file.path(DIR_DATALAKE, "world_bank_countries.Rds")
 
 # 4 - WORLD DATA -JHU -----------------------------------------------------
 
 JHU_ROOT_URL <- 
-  "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/"
+  "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/"
+JHU_TS_URL <- paste0(JHU_ROOT_URL, "csse_covid_19_time_series/")
 
 CONFIRMED_TS <- "time_series_covid19_confirmed_global"
-CONFIRMED_TS_URL <- paste0(JHU_ROOT_URL, CONFIRMED_TS, ".csv")
+CONFIRMED_TS_URL <- paste0(JHU_TS_URL, CONFIRMED_TS, ".csv")
 CONFIRMED_TS_RDS <- file.path(DIR_DATALAKE, paste0(CONFIRMED_TS, ".Rds"))
 
 DEATHS_TS <- "time_series_covid19_deaths_global"
-DEATHS_TS_URL <- paste0(JHU_ROOT_URL, DEATHS_TS,".csv")
+DEATHS_TS_URL <- paste0(JHU_TS_URL, DEATHS_TS,".csv")
 DEATHS_TS_RDS <- file.path(DIR_DATALAKE, paste0(DEATHS_TS,".Rds"))
 
 RECOVERED_TS <- "time_series_covid19_recovered_global"
-RECOVERED_TS_URL <- paste0(JHU_ROOT_URL, RECOVERED_TS, ".csv")
+RECOVERED_TS_URL <- paste0(JHU_TS_URL, RECOVERED_TS, ".csv")
 RECOVERED_TS_RDS <- file.path(DIR_DATALAKE, paste0(RECOVERED_TS, ".Rds"))
 
+JHU_COUNTRIES_TABLE_URL <- paste0(JHU_ROOT_URL, "UID_ISO_FIPS_LookUp_Table.csv")
+JHU_COUNTRIES_TABLE_RDS <- file.path(DIR_DATALAKE, "jhu_countries_table.Rds")
 
 # 5 - Ministerio Sanidad --------------------------------------------------
 
