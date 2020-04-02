@@ -154,7 +154,7 @@ saveRDS(ccaa_uci_long, RDS_UCI_CCAA_LONG)
 # 3 - WORLD POP DATA ------------------------------------------------------
 
 wprld_pop <- get_world_pop_data()
-saveRDS(mydata, wprld_pop)
+saveRDS(wprld_pop, WLD_POP_RDS)
 
 world_bank_countries <- read_delim(CSV_WLD_BANK_COUNTRIES, 
                                    ";", 
