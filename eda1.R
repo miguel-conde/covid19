@@ -109,6 +109,29 @@ spain_deaths <- deaths_data %>%
 
 jhu_ctry_data(jhu_clean_data, "ESP")
 
+### pLOTS
+### 
+hc_jhu_ctry(jhu_clean_data, "ESP", c("confirmed", 
+                                     "deaths", 
+                                     "recovered",
+                                     "active"))
+hc_jhu_ctry(jhu_clean_data, "ESP", c("confirmed_per_100K", 
+                                     "deaths_per_100K", 
+                                     "recovered_per_100K",
+                                     "active_per_100K"))
+hc_jhu_ctry(jhu_clean_data, "ESP", c("confirmed_var_perc", 
+                                     "deaths_var_perc", 
+                                     "recovered_var_perc",
+                                     "active_var_perc"))
+
+plot_data <- jhu_clean_data %>% 
+  filter(country %in% c("Spain", "Italy", "Korea, South", "China",
+                        "France", "Germany", "Korea, South", "US", 
+                        "United Kingdom"))
+hc_jhu_ctry_col(plot_data, deaths, per_100K = FALSE)
+hc_jhu_ctry_col(plot_data, deaths, per_100K = TRUE)
+hc_jhu_ctry_col(plot_data, deaths, per_100K = TRUE, orig_t = .2)
+
 # ESPAÑA ------------------------------------------------------------------
 
 clean_datos_min <- get_sp_clean_data()

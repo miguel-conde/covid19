@@ -1,7 +1,7 @@
 # library(tabulizer)
 
 # library(INEbaseR)
-
+library(tibbletime)
 source("global.R", encoding = "UTF8")
 
 
@@ -144,6 +144,50 @@ chg_orig_t <- function(in_data, orig_t) {
   out
 }
 
+jhu_chg_orig_t <- function(in_data, orig_t) {
+  
+  out <- lapply(in_data %>% select(-date),
+                function(x) {
+                  out <- tibble(x = x[x > orig_t]) %>%
+                    drop_na()
+                  if(nrow(out) > 0) {
+                    out %>%
+                      mutate(n_day = 1:nrow(out))
+                  }
+
+                })
+  # n <- in_data %>% select(-date) %>% names()
+  # out <- lapply(n,
+  #               function(x) {
+  #                 out <- in_data[in_data[, x] > orig_t, ] %>% 
+  #                   select(date, x) %>% 
+  #                   drop_na()
+  #                 if(nrow(out) > 0) {
+  #                   out %>% 
+  #                     mutate(n_day = 1:nrow(out))
+  #                 }
+  #                 
+  #               })
+  
+  out <- out[sapply(out,function(x) !is.null(x)) %>% unlist]  
+  
+  if(length(out) == 0) return(NULL)
+  
+  aux_names <- names(out)
+  
+  # names(out) <- names(in_data %>% select(-fecha))
+  
+  out <- out %>% reduce(full_join, by = "n_day") %>% 
+    select(-n_day) 
+  # names(out) <- names(in_data %>% select(-fecha))
+  names(out) <- aux_names
+  
+  out <- tibble(n_day = 1:nrow(out)) %>% 
+    bind_cols(out)
+  
+  out
+}
+
 
 datos_min_ccaa_col <- function(clean_datos_min, tgt_var,
                                var_res = c("none", "units", "perc"),
@@ -230,9 +274,11 @@ jhu_ctry_data_col <- function(jhu_clean_data, tgt_var,
     # aux2 <- aux2[names(aux)] / 100000
     
     aux2 <- jhu_clean_data %>% 
-      select(population) %>% 
-      distinct() %>% 
-      pull(population)
+      select(iso3c, population) %>% 
+      distinct() 
+    aux2_names <- aux2 %>% pull(iso3c)
+    aux2 <- aux2 %>% pull(population)
+    names(aux2) <- aux2_names
     aux2 <- aux2[names(aux)] / 100000
     
     aux <- sweep(aux, 2, STATS = aux2, FUN = "/") %>%
@@ -259,7 +305,7 @@ jhu_ctry_data_col <- function(jhu_clean_data, tgt_var,
   
   if (!is.null(orig_t)) {
     # aux_names <- names(out)[-1]
-    out <- chg_orig_t(out, orig_t)
+    out <- jhu_chg_orig_t(out, orig_t)
     # names(out)[-1] <- aux_names
   }
   
@@ -368,6 +414,51 @@ hc_min_ccaa_col <- function(in_data, tgt_col, info_ccaa = tbl_ccaa,
   
   out
 }
+
+hc_jhu_ctry_col <- function(in_data, tgt_col,
+                            # plot_type = "line", 
+                            ...) {
+  
+  quo_tgt_col <- enquo(tgt_col)
+  
+  plot_data <- jhu_ctry_data_col(in_data, !!quo_tgt_col, ...)
+  
+  if(is.null(plot_data)) return(NULL)
+  
+  info_ctries <-  in_data %>% select(country, iso3c) %>% distinct()
+  
+  hc_data <- plot_data %>% 
+    # gather(codigo_iso, !!quo_tgt_col, -fecha)  %>% 
+    gather(iso3c, value, -1)  %>% 
+    mutate(iso3c = str_remove(iso3c, "_.+$")) %>% 
+    left_join(info_ctries %>% 
+                select(iso3c, country), by = "iso3c") %>% 
+    # mutate(country = ifelse(is.na(country), "España", country)) %>% 
+    select(-iso3c)
+  
+  if(names(hc_data)[1] == "date") {
+    out <- hchart(hc_data, 
+                  type = "line", 
+                  hcaes(x = date, 
+                        y = value, 
+                        group = country)) %>%
+      hc_chart(zoomType = "xy") %>% 
+      hc_title(text = quo_name(quo_tgt_col))
+  } else {
+    out <- hchart(hc_data, 
+                  type = "line", 
+                  hcaes(x = n_day, 
+                        # y = quo_name(quo_tgt_col), 
+                        y = value, 
+                        group = country)) %>%
+      hc_chart(zoomType = "xy") %>% 
+      hc_title(text = quo_name(quo_tgt_col))
+  }
+  
+  
+  out
+}
+
 
 
 hc_min_ccaa <- function(in_data, tgt_ccaa, metricas = NULL) {
