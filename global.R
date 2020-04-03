@@ -87,6 +87,8 @@ RECOVERED_TS_RDS <- file.path(DIR_DATALAKE, paste0(RECOVERED_TS, ".Rds"))
 JHU_COUNTRIES_TABLE_URL <- paste0(JHU_ROOT_URL, "UID_ISO_FIPS_LookUp_Table.csv")
 JHU_COUNTRIES_TABLE_RDS <- file.path(DIR_DATALAKE, "jhu_countries_table.Rds")
 
+JHU_COUNTRIES_DATA_RDS <- file.path(DIR_DATALAKE, "jhu_countries_data.Rds")
+
 # 5 - Ministerio Sanidad --------------------------------------------------
 
 # MINISTERIO SANIDAD

@@ -2,6 +2,7 @@
 
 # LIBRARIES and SOURCES ---------------------------------------------------
 library(readr)
+library(tidycovid19)
 
 source("global.R", encoding = "UTF8")
 # source("utils.R", encoding = "UTF8")
@@ -179,3 +180,5 @@ saveRDS(recovered_ts, RECOVERED_TS_RDS)
 jhu_countries_table <- read_csv(file = JHU_COUNTRIES_TABLE_URL)
 saveRDS(jhu_countries_table, JHU_COUNTRIES_TABLE_RDS)
 
+jhu_countries_data <- download_merged_data(cached = TRUE)
+saveRDS(jhu_countries_data, JHU_COUNTRIES_DATA_RDS)

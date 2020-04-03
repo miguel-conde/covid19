@@ -85,6 +85,30 @@ delay_spain_italy_per_100K <- italy_past_per_100K - spain_last_date_per_100K
 delay_spain_italy_per_100K
 
 
+# COUNTRIES ---------------------------------------------------------------
+
+jhu_clean_data <- get_jhu_clean_data()
+
+
+deaths_data <- 
+  jhu_ctry_data_col(jhu_clean_data, deaths)
+deaths_data_var_units <- 
+  jhu_ctry_data_col(jhu_clean_data, deaths, "units")
+
+deaths_data_per_100K <- 
+  jhu_ctry_data_col(jhu_clean_data, deaths, per_100K = TRUE)
+deaths_data_per_100K_var_units <- 
+  jhu_ctry_data_col(jhu_clean_data, deaths, "perc", per_100K = TRUE)
+
+deaths_data_var_perc <- jhu_ctry_data_col(jhu_clean_data, deaths, "perc")
+
+deaths_data_var_units
+
+spain_deaths <- deaths_data %>%
+  select(date, deaths = "ESP")
+
+jhu_ctry_data(jhu_clean_data, "ESP")
+
 # ESPAÑA ------------------------------------------------------------------
 
 clean_datos_min <- get_sp_clean_data()

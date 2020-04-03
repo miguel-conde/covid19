@@ -34,8 +34,6 @@ wld_pop_data <- readRDS(WLD_POP_RDS)
 
 # COUNTRIES ---------------------------------------------------------------
 
-
-
 get_jhu_clean_data <- function() {
   confirmed_ts <- readRDS(CONFIRMED_TS_RDS)
   deaths_ts <- readRDS(DEATHS_TS_RDS)
@@ -49,6 +47,15 @@ get_jhu_clean_data <- function() {
     lapply(function(x) {
       x %>% rename_if(is.character, janitor::make_clean_names)
     })
+  
+  return(out)
+}
+
+get_jhu_clean_data <- function() {
+  out <- readRDS(JHU_COUNTRIES_DATA_RDS) %>% 
+    select(country, iso3c, date, confirmed, deaths, 
+           recovered, population, region) %>% 
+           mutate(active = confirmed - deaths - recovered)
   
   return(out)
 }

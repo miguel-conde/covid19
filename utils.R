@@ -145,7 +145,7 @@ chg_orig_t <- function(in_data, orig_t) {
 }
 
 
-datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
+datos_min_ccaa_col <- function(clean_datos_min, tgt_var,
                                var_res = c("none", "units", "perc"),
                                per_100K = FALSE,
                                info_ccaa = tbl_ccaa,
@@ -155,7 +155,7 @@ datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
 
   enquo_tgt_var <- enquo(tgt_var)
 
-  datos_min <- raw_datos_min %>%
+  datos_min <- clean_datos_min %>%
     select(fecha, codigo_iso, !!enquo_tgt_var) %>%
     spread("codigo_iso", quo_name(enquo_tgt_var))
   # datos_min <- datos_min %>%
@@ -204,10 +204,73 @@ datos_min_ccaa_col <- function(raw_datos_min, tgt_var,
   return(out)
 }
 
-datos_min_ccaa <- function(raw_datos_min, cod_ccaa, info_ccaa = tbl_ccaa) {
+jhu_ctry_data_col <- function(jhu_clean_data, tgt_var,
+                               var_res = c("none", "units", "perc"),
+                               per_100K = FALSE,
+                               orig_t = NULL) {
+  
+  var_mode <- match.arg(var_res)
+  
+  enquo_tgt_var <- enquo(tgt_var)
+  
+  jhu_data <- jhu_clean_data %>%
+    select(date, iso3c, !!enquo_tgt_var) %>%
+    spread("iso3c", quo_name(enquo_tgt_var))
+  
+  out <- jhu_data %>%
+    right_join(tibble(date = seq(from = min(jhu_data$date),
+                                  to = max(jhu_data$date),
+                                  by = 1)),
+               by = "date")
+  
+  if (per_100K == TRUE) {
+    aux <- out %>% select(-date)
+    # aux2 <- info_ccaa$pob
+    # names(aux2) <- info_ccaa$iso3c
+    # aux2 <- aux2[names(aux)] / 100000
+    
+    aux2 <- jhu_clean_data %>% 
+      select(population) %>% 
+      distinct() %>% 
+      pull(population)
+    aux2 <- aux2[names(aux)] / 100000
+    
+    aux <- sweep(aux, 2, STATS = aux2, FUN = "/") %>%
+      as.data.frame()
+    
+    out <- out %>% select(date) %>%
+      bind_cols(aux)
+    names(out)[-1]  <- paste0(names(out)[-1], "_per_100K")
+  }
+  
+  if (var_mode == "units") {
+    out <- out %>%
+      mutate_if(is.numeric, list(var = ~  c(NA, diff(.)))) %>%
+      select(date, ends_with("var"))
+    
+  } else {
+    if (var_mode == "perc") {
+      out <- out %>%
+        mutate_if(is.numeric,
+                  list(var_perc = ~ (./dplyr::lag(.) - 1) * 100)) %>%
+        select(date, ends_with("var_perc"))
+    }
+  }
+  
+  if (!is.null(orig_t)) {
+    # aux_names <- names(out)[-1]
+    out <- chg_orig_t(out, orig_t)
+    # names(out)[-1] <- aux_names
+  }
+  
+  return(out)
+}
+
+
+datos_min_ccaa <- function(clean_datos_min, cod_ccaa, info_ccaa = tbl_ccaa) {
 
   if(cod_ccaa == "ES") {
-    out <- raw_datos_min %>%
+    out <- clean_datos_min %>%
       filter(codigo_iso  == cod_ccaa) %>%
       group_by(fecha) %>%
       summarise_if(is.numeric, sum, na.rm = TRUE)
@@ -215,10 +278,10 @@ datos_min_ccaa <- function(raw_datos_min, cod_ccaa, info_ccaa = tbl_ccaa) {
                   ccaa = rep("España", nrow(out))) %>%
       bind_cols(out)
   } else {
-    out <- raw_datos_min %>%
+    out <- clean_datos_min %>%
       filter(codigo_iso  == cod_ccaa) %>%
-      right_join(tibble(fecha = seq(from = min(raw_datos_min$fecha),
-                                    to = max(raw_datos_min$fecha),
+      right_join(tibble(fecha = seq(from = min(clean_datos_min$fecha),
+                                    to = max(clean_datos_min$fecha),
                                     by = 1)),
                  by = "fecha")
   }
@@ -237,7 +300,27 @@ datos_min_ccaa <- function(raw_datos_min, cod_ccaa, info_ccaa = tbl_ccaa) {
 }
 
 
-
+jhu_ctry_data <- function(jhu_clean_data, cod_ctry) {
+  
+  out <- jhu_clean_data %>%
+    filter(iso3c  == cod_ctry) %>%
+    right_join(tibble(date = seq(from = min(jhu_clean_data$date),
+                                 to = max(jhu_clean_data$date),
+                                 by = 1)),
+               by = "date")
+  
+  aux <- out %>% select_if(is.numeric) %>% names()
+  
+  out <- out %>%
+    mutate_if(is.numeric, list(per_100K = ~ . / population * 100000)) %>%
+    mutate_if(is.numeric, list(var = ~ c(NA, diff(.)))) %>%
+    mutate_at(vars((aux)),
+              list(var_perc = ~ (./dplyr::lag(.) - 1) * 100)) %>%
+    select(-ends_with("_100K_var_perc"))
+  
+  
+  return(out)
+}
 
 
 
@@ -303,6 +386,26 @@ hc_min_ccaa <- function(in_data, tgt_ccaa, metricas = NULL) {
                 hcaes(x = fecha, y = valor, group = metrica)) %>%
     hc_chart(zoomType = "xy") %>% 
     hc_title(text = quo_name(tgt_ccaa))
+  
+  out
+}
+
+hc_jhu_ctry <- function(in_data, cod_ctry, metrics = NULL) {
+  
+  plot_data <- jhu_ctry_data(in_data, cod_ctry) %>% 
+    select(-country, -iso3c, -population, -region) %>% 
+    gather(metric, value, -date) 
+  
+  if (!is.null(metrics)) {
+    plot_data <- plot_data %>% 
+      filter(metric %in% metrics)
+  }
+  
+  out <- hchart(plot_data , 
+                "line", 
+                hcaes(x = date, y = value, group = metric)) %>%
+    hc_chart(zoomType = "xy") %>% 
+    hc_title(text = quo_name(cod_ctry))
   
   out
 }
