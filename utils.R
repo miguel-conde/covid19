@@ -1,6 +1,7 @@
 # library(tabulizer)
 
 # library(INEbaseR)
+library(tvReg)
 library(tibbletime)
 source("global.R", encoding = "UTF8")
 
@@ -499,4 +500,23 @@ hc_jhu_ctry <- function(in_data, cod_ctry, metrics = NULL) {
     hc_title(text = quo_name(cod_ctry))
   
   out
+}
+
+
+# EDA ---------------------------------------------------------------------
+
+
+calc_days_2_double <- function(in_data_col, place) {
+  place_events <- in_data_col %>% select(1, events = place)
+  
+  data_exp <- place_events %>%  filter(events > 0) 
+  data_exp <- data_exp %>% mutate(n_day = 1:nrow(data_exp))
+  
+  tvp_sp_lm <- tvLM(log(events) ~ log(n_day), data = data_exp)
+  
+  k_t <- coef(tvp_sp_lm)[,2]
+  beta_0 <- coef(tvp_sp_lm)[,1]
+  data_exp$days_2_double <- (2^(1/k_t) - 1) * data_exp$n_day
+  
+  return(data_exp)
 }

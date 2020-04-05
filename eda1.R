@@ -1,6 +1,5 @@
 
 # LIBRARIES and SOURCES ---------------------------------------------------
-library(tvReg)
 
 source("get_clean_data.R", encoding = "UTF8")
 source("utils.R", encoding = "UTF8")
@@ -383,3 +382,41 @@ dy_dt <- c(NA, diff(k_t))*(1:length(k_t)) + k_t + c(NA, diff(beta_0))
 dy_dt <- dy_dt * data_exp$fallecidos
 plot(dy_dt, type = "l")
 abline(h = 0, lty = 2)
+
+
+
+
+
+calc_days_2_double(datos_min_ccaa_col(clean_datos_min, fallecidos), "ES")
+
+calc_days_2_double(jhu_ctry_data_col(jhu_clean_data, deaths), "ESP")
+
+
+n_fcst <- 10
+
+plot(data_exp %>% select(fecha, fallecidos), type = "l", lwd = 3,
+     xlim = c(min(data_exp$fecha), max(data_exp$fecha) + n_fcst), 
+     ylim = c(0, n_fcst/2*max(data_exp[,"fallecidos"])))
+
+for(i in 4: nrow(data_exp)) {
+  
+  data_exp_i <- data_exp[1:i, ]
+  n_data <- nrow(data_exp_i)
+
+  tvp_sp_lm <- tvLM(log(fallecidos) ~ log(n_day), 
+                    data = data_exp_i)
+  
+  fcst_n_day <- n_data + (1:n_fcst)
+  fcst_date <- (data_exp_i %>% tail(1) %>% pull(fecha)) + (1:n_fcst)
+  fcst_deaths <- forecast(tvp_sp_lm, 
+                          n.ahead = n_fcst, 
+                          newx = matrix(log(fcst_n_day), byrow = FALSE)) %>% 
+    exp()
+  fcst <- tibble(fecha = fcst_date, n_day = fcst_n_day, fallecidos = fcst_deaths)
+  
+  # data_exp[1:i, ] %>% select(fecha, fallecidos) %>% 
+  #   lines(type = "l", xlim = c(min(data_exp[1:i, ]$fecha), max(fcst$fecha)), 
+  #        ylim = c(0, max(fcst$fallecidos)))
+  # browser()
+  lines(fcst %>% select(fecha, fallecidos), lty = 2, col = i, type = "o")
+}
