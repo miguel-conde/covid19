@@ -1,0 +1,32 @@
+---
+title: "COVID Resources"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[Johns Hopkins dashboard](https://coronavirus.jhu.edu/map.html)
+
+[Johns Hopkins data (Github)](https://github.com/CSSEGISandData/COVID-19)
+
+[Google Map](https://google.com/covid19-map/)
+
+[Google COVID-19 Community Mobility Reports](https://www.google.com/covid19/mobility/)
+
+[Datadista](https://datadista.com/)
+[Datadista Github](https://github.com/datadista/datasets/tree/master/COVID%2019)
+
+[Sanidad](https://www.mscbs.gob.es/en/profesionales/saludPublica/ccayes/alertasActual/nCov-China/situacionActual.htm)
+[Sanidad - Dashboard](https://covid19.isciii.es/)
+
+[datos.gob.es](https://datos.gob.es/es/catalogo?q=covid)
+[datos.gob.es - Datos Sanidad](https://datos.gob.es/es/catalogo/e05070101-evolucion-de-enfermedad-por-el-coronavirus-covid-19)
+
+[Worldometer](https://www.worldometers.info/coronavirus/)
+
+R Packages
+
+[Top 35 R resources on Novel COVID-19 Coronavirus](https://towardsdatascience.com/top-5-r-resources-on-covid-19-coronavirus-1d4c8df6d85f)
+[tidycovid](https://joachim-gassen.github.io/2020/03/meet-tidycovid19-yet-another-covid-19-related-r-package/)
