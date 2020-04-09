@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Datos
+
 [Johns Hopkins dashboard](https://coronavirus.jhu.edu/map.html)
 
 [Johns Hopkins data (Github)](https://github.com/CSSEGISandData/COVID-19)
@@ -16,17 +18,31 @@ knitr::opts_chunk$set(echo = TRUE)
 [Google COVID-19 Community Mobility Reports](https://www.google.com/covid19/mobility/)
 
 [Datadista](https://datadista.com/)
+
 [Datadista Github](https://github.com/datadista/datasets/tree/master/COVID%2019)
 
 [Sanidad](https://www.mscbs.gob.es/en/profesionales/saludPublica/ccayes/alertasActual/nCov-China/situacionActual.htm)
+
 [Sanidad - Dashboard](https://covid19.isciii.es/)
 
 [datos.gob.es](https://datos.gob.es/es/catalogo?q=covid)
+
 [datos.gob.es - Datos Sanidad](https://datos.gob.es/es/catalogo/e05070101-evolucion-de-enfermedad-por-el-coronavirus-covid-19)
 
 [Worldometer](https://www.worldometers.info/coronavirus/)
 
-R Packages
+# R
+
+[Tim Churches Health Data Science Blog](https://timchurches.github.io/blog/#COVID-19)
+
+[Tim Churches - Github](https://github.com/timchurches)
+
+[COVID-19 epidemiology with R](https://rviews.rstudio.com/2020/03/05/covid-19-epidemiology-with-r/)
 
 [Top 35 R resources on Novel COVID-19 Coronavirus](https://towardsdatascience.com/top-5-r-resources-on-covid-19-coronavirus-1d4c8df6d85f)
+
+[R Epidemics Consortium - Projects](https://www.repidemicsconsortium.org/projects/)
+
 [tidycovid](https://joachim-gassen.github.io/2020/03/meet-tidycovid19-yet-another-covid-19-related-r-package/)
+
+[EpiModel](https://www.epimodel.org/)
