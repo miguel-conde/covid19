@@ -36,7 +36,7 @@ clean_datos_min <- get_sp_clean_data()
 
 datos_incidencia <- 
   datos_min_ccaa(clean_datos_min, "ES") %>% 
-  select(fecha, casos)
+  select(fecha, casos, activos)
 
 # put the daily cumulative incidence numbers for Hubei from
 # 15th Jan to 30th Jan into a vector called Infected
@@ -49,7 +49,7 @@ infectados <- datos_incidencia %>% filter(fecha >= sir_start_date,
 
 # % infectados  detectados
 # ascertainment_rate <- .2
-ascertainment_rate <- .1
+ascertainment_rate <- 1
 infectados <- infectados / ascertainment_rate
 
 

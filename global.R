@@ -57,8 +57,7 @@ RDS_TBL_CCAA <- file.path(DIR_DATALAKE, "tbl_ccaa.Rds")
 
 WORLD_POP_URL <- "http://api.worldbank.org/v2/en/indicator/SP.POP.TOTL?downloadformat=csv"
 
-# POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv"
-POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv"
+POP_FILE <- "API_SP.POP.TOTL_DS2_en_csv_v2_936048.csv"
 
 WLD_POP_RDS <- file.path(DIR_DATALAKE, "wld_pop.Rds")
 

@@ -10,78 +10,78 @@ source("utils.R", encoding = "UTF8")
 
 # COUNTRIES ---------------------------------------------------------------
 
-clean_data_list <- get_jhu_clean_data()
-
-china_data <- get_cntry_region_ttss("China", 
-                                    clean_data_list = clean_data_list, 
-                                    pop_data = wld_pop_data)
-
-s_korea_data <- get_cntry_region_ttss("Korea, South", 
-                                      clean_data_list = clean_data_list, 
-                                      pop_data = wld_pop_data)
-
-spain_data <- get_cntry_region_ttss("Spain", 
-                                    clean_data_list = clean_data_list, 
-                                    pop_data = wld_pop_data)
-
-italy_data <- get_cntry_region_ttss("Italy", 
-                                    clean_data_list = clean_data_list,
-                                    pop_data = wld_pop_data)
-
-plot(italy_data %>% select(date, confirmed, deaths, recovered, active))
-
-plot(italy_data %>% select(date, confirmed), type = "l")
-
-lines(spain_data %>% select(date, confirmed), type = "l", col = "blue")
-
-
-spain_last_data <- spain_data %>% tail(1)
-italy_past <- italy_data %>%
-  filter(confirmed < (spain_last_data %>% pull(confirmed))) %>%
-  tail(1) %>%
-  pull(date)
-
-spain_last_date <- spain_last_data %>% pull(date)
-
-delay_spain_italy <- italy_past - spain_last_date
-
-delay_spain_italy
-
-Conento::descriptivos_n_variables(china_data %>% select(-Lat, -Long))
-Conento::descriptivos_n_variables(italy_data %>% select(-Lat, -Long))
-Conento::descriptivos_n_variables(spain_data %>% select(-Lat, -Long))
-Conento::descriptivos_n_variables(s_korea_data %>% select(-Lat, -Long))
-
-china_data_per_100K <- get_cntry_region_ttss("China", 
-                                              clean_data_list = clean_data_list, 
-                                              pop_data = wld_pop_data,
-                                              per_100K = TRUE)
-
-spain_data_per_100K <- get_cntry_region_ttss("Spain", 
-                                              clean_data_list = clean_data_list, 
-                                              pop_data = wld_pop_data,
-                                              per_100K = TRUE)
-
-italy_data_per_100K <- get_cntry_region_ttss("Italy", 
-                                              clean_data_list = clean_data_list,
-                                              pop_data = wld_pop_data,
-                                              per_100K = TRUE)
-
-Conento::descriptivos_n_variables(china_data_per_100K %>% select(-Lat, -Long))
-Conento::descriptivos_n_variables(italy_data_per_100K %>% select(-Lat, -Long))
-Conento::descriptivos_n_variables(spain_data_per_100K %>% select(-Lat, -Long))
-
-spain_last_data_per_100K <- spain_data_per_100K %>% tail(1)
-italy_past_per_100K <- italy_data_per_100K %>%
-  filter(confirmed < (spain_last_data %>% pull(confirmed))) %>%
-  tail(1) %>%
-  pull(date)
-
-spain_last_date_per_100K <- spain_last_data_per_100K %>% pull(date)
-
-delay_spain_italy_per_100K <- italy_past_per_100K - spain_last_date_per_100K
-
-delay_spain_italy_per_100K
+# clean_data_list <- get_jhu_clean_data()
+# 
+# china_data <- get_cntry_region_ttss("China", 
+#                                     clean_data_list = clean_data_list, 
+#                                     pop_data = wld_pop_data)
+# 
+# s_korea_data <- get_cntry_region_ttss("Korea, South", 
+#                                       clean_data_list = clean_data_list, 
+#                                       pop_data = wld_pop_data)
+# 
+# spain_data <- get_cntry_region_ttss("Spain", 
+#                                     clean_data_list = clean_data_list, 
+#                                     pop_data = wld_pop_data)
+# 
+# italy_data <- get_cntry_region_ttss("Italy", 
+#                                     clean_data_list = clean_data_list,
+#                                     pop_data = wld_pop_data)
+# 
+# plot(italy_data %>% select(date, confirmed, deaths, recovered, active))
+# 
+# plot(italy_data %>% select(date, confirmed), type = "l")
+# 
+# lines(spain_data %>% select(date, confirmed), type = "l", col = "blue")
+# 
+# 
+# spain_last_data <- spain_data %>% tail(1)
+# italy_past <- italy_data %>%
+#   filter(confirmed < (spain_last_data %>% pull(confirmed))) %>%
+#   tail(1) %>%
+#   pull(date)
+# 
+# spain_last_date <- spain_last_data %>% pull(date)
+# 
+# delay_spain_italy <- italy_past - spain_last_date
+# 
+# delay_spain_italy
+# 
+# Conento::descriptivos_n_variables(china_data %>% select(-Lat, -Long))
+# Conento::descriptivos_n_variables(italy_data %>% select(-Lat, -Long))
+# Conento::descriptivos_n_variables(spain_data %>% select(-Lat, -Long))
+# Conento::descriptivos_n_variables(s_korea_data %>% select(-Lat, -Long))
+# 
+# china_data_per_100K <- get_cntry_region_ttss("China", 
+#                                               clean_data_list = clean_data_list, 
+#                                               pop_data = wld_pop_data,
+#                                               per_100K = TRUE)
+# 
+# spain_data_per_100K <- get_cntry_region_ttss("Spain", 
+#                                               clean_data_list = clean_data_list, 
+#                                               pop_data = wld_pop_data,
+#                                               per_100K = TRUE)
+# 
+# italy_data_per_100K <- get_cntry_region_ttss("Italy", 
+#                                               clean_data_list = clean_data_list,
+#                                               pop_data = wld_pop_data,
+#                                               per_100K = TRUE)
+# 
+# Conento::descriptivos_n_variables(china_data_per_100K %>% select(-Lat, -Long))
+# Conento::descriptivos_n_variables(italy_data_per_100K %>% select(-Lat, -Long))
+# Conento::descriptivos_n_variables(spain_data_per_100K %>% select(-Lat, -Long))
+# 
+# spain_last_data_per_100K <- spain_data_per_100K %>% tail(1)
+# italy_past_per_100K <- italy_data_per_100K %>%
+#   filter(confirmed < (spain_last_data %>% pull(confirmed))) %>%
+#   tail(1) %>%
+#   pull(date)
+# 
+# spain_last_date_per_100K <- spain_last_data_per_100K %>% pull(date)
+# 
+# delay_spain_italy_per_100K <- italy_past_per_100K - spain_last_date_per_100K
+# 
+# delay_spain_italy_per_100K
 
 
 # COUNTRIES ---------------------------------------------------------------
@@ -114,6 +114,10 @@ hc_jhu_ctry(jhu_clean_data, "ESP", c("confirmed",
                                      "deaths", 
                                      "recovered",
                                      "active"))
+hc_jhu_ctry(jhu_clean_data, "ESP", c("confirmed_var", 
+                                     "deaths_var", 
+                                     "recovered_var",
+                                     "active_var"))
 hc_jhu_ctry(jhu_clean_data, "ESP", c("confirmed_per_100K", 
                                      "deaths_per_100K", 
                                      "recovered_per_100K",
@@ -146,7 +150,8 @@ datos_fallecidos_per_100K <-
 datos_fallecidos_per_100K_var_units <- 
   datos_min_ccaa_col(clean_datos_min, fallecidos, "perc", per_100K = TRUE)
 
-datos_fallecidos_var_perc <- datos_min_ccaa_col(clean_datos_min, fallecidos, "perc")
+datos_fallecidos_var_perc <- 
+  datos_min_ccaa_col(clean_datos_min, fallecidos, "perc")
 
 datos_fallecidos_var_units
 
@@ -163,6 +168,12 @@ hc_min_ccaa(clean_datos_min, "MD", c("casos",
                                      "activos",
                                      "hospitalizados",
                                      "uci"))
+hc_min_ccaa(clean_datos_min, "MD", c("casos_var", 
+                                     "fallecidos_var", 
+                                     "altas_var",
+                                     "activos_var",
+                                     "hospitalizados_var",
+                                     "uci_var"))
 hc_min_ccaa(clean_datos_min, "MD", c("casos_per_100K", 
                          "fallecidos_per_100K", 
                          "altas_per_100K",
